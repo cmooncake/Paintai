@@ -1,0 +1,11 @@
+# Offline fixtures only; no paid calls or quality evaluation.
+data_dir = "../data"
+
+[planner]
+provider = "mock"
+
+[generator]
+provider = "mock"
+
+[critic]
+provider = "mock"

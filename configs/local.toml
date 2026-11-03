@@ -1,0 +1,19 @@
+# Real local text planning; image generation and evaluation remain simulated.
+data_dir = "../data"
+
+[planner]
+provider = "openai_compatible"
+base_url = "http://127.0.0.1:18080/v1"
+model = "paintai-local"
+auth = "none"
+structured_output = "json_schema"
+timeout_seconds = 180
+[planner.parameters]
+temperature = 0.2
+max_completion_tokens = 1024
+
+[generator]
+provider = "mock"
+
+[critic]
+provider = "mock"

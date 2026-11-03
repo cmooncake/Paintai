@@ -1,0 +1,30 @@
+# Copy to repository root as paintai.toml. Replace each model with one available
+# to your account. base_url includes /v1 (or the compatible service's API prefix).
+data_dir = "data"
+
+[planner]
+provider = "openai_compatible"
+base_url = "https://api.openai.com/v1"
+model = "REPLACE_WITH_TEXT_MODEL"
+api_key_env = "PAINTAI_PLANNER_API_KEY"
+structured_output = "json_schema"
+timeout_seconds = 120
+
+[generator]
+provider = "openai_compatible"
+base_url = "https://api.openai.com/v1"
+model = "REPLACE_WITH_IMAGE_MODEL"
+api_key_env = "PAINTAI_GENERATOR_API_KEY"
+timeout_seconds = 180
+[generator.parameters]
+size = "1024x1024"
+# quality = "low"
+# Do not set response_format for GPT image models. Some compatible backends use it.
+
+[critic]
+provider = "openai_compatible"
+base_url = "https://api.openai.com/v1"
+model = "REPLACE_WITH_VISION_MODEL"
+api_key_env = "PAINTAI_CRITIC_API_KEY"
+structured_output = "json_schema"
+timeout_seconds = 120

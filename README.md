@@ -8,7 +8,45 @@ Paintai 不是又一个「输入 prompt 输出图片」的图像生成器。它�
 
 ## 这个仓库现在有什么
 
-目前是**设计仓库**，代码尚未开始。两份文档是全部内容：
+目前已实现并实测 **M0 全本地创作闭环**：画师管理 → Qwen 构思 → SD-Turbo 生图 → Qwen3-VL 看图六维评价 → SQLite 作品库。三个角色均使用真实本地推理，云端 API 尚未实测。
+
+## 快速运行 M0
+
+现在可以从独立网页画室使用 M0：创建画师、输入灵感、查看创作进度、浏览作品与六维评价，以及重新看图评价。
+
+已有本地模型的本机启动方式：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,web]"
+npm.cmd --prefix web ci
+.\scripts\start-web.ps1 -StartModels
+```
+
+打开 **http://127.0.0.1:5173**。前端 React + TypeScript 位于 `web/`，后端 FastAPI 独立运行于 `127.0.0.1:8000`，通过 `/api/v1` 通信；模型配置留在后端。首次安装模型、开发方式和 API 约定见 [网页画室说明](docs/WEB.md)。
+
+### CLI
+
+Python 3.11+，在仓库根目录运行：
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\paintai.exe --offline painter add demo --name "小画师" --style "水墨"
+.\.venv\Scripts\paintai.exe --offline create "秋天的树林" --painter demo
+.\.venv\Scripts\paintai.exe --offline gallery --painter demo
+```
+
+`--offline` 生成明确标注的测试图片和固定模拟评分，**不调用模型、不验证艺术质量**。输出包含 `simulated: true`、本地图片路径、构思、六维评分、建议和作品 ID。所有命令输出 JSON。
+
+真实 API 配置、失败恢复和验收说明见 [M0 使用说明](docs/M0.md)。
+
+无云端 API 时，可使用 [本地小模型试运行](docs/LOCAL_MODEL.md)：Qwen2.5 0.5B 在 CPU 上负责真实构思，生图与评价仍为模拟模式。
+
+进一步可使用 [本地真实生图](docs/LOCAL_IMAGE.md)：Qwen 构思 + SD-Turbo CPU 生图，评价仍为模拟模式。
+
+完整体验见 [全本地闭环](docs/LOCAL_FULL.md)：`configs/local-full.toml` 增加 Qwen3-VL 视觉评分，三个角色均为真实模型。
+
+## 设计文档
 
 | 文档 | 内容 | 状态 |
 |---|---|---|
@@ -45,8 +83,10 @@ Paintai 不是又一个「输入 prompt 输出图片」的图像生成器。它�
 
 - 架构方案：v1.1，已定稿
 - 执行文档：v1.0，已定稿
-- 代码：未开始
-- 待拍板：默认课程模板的具体关卡设计、Critic 用 GPT-4o 还是 Claude
+- 代码：M0 CLI、独立网页画室 / HTTP API、持久化任务队列、可替换模型接口、画师隔离、作品持久化及失败恢复已实现
+- 已实测：Qwen 构思 + SD-Turbo CPU 512×512 生图 + Qwen3-VL 真实看图评价，完整入库
+- 已验证：换图视觉描述、历史作品重评、评价记录与图片哈希；评分可靠性仍需校准
+- 后续：课程系统、经验记忆、成长对照实验与画师存档
 
 ## 参考资料
 
