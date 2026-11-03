@@ -2,7 +2,8 @@ import hashlib
 from collections.abc import Callable
 
 from .config import Settings
-from .models import Plan
+from .memory import Memory, Retriever
+from .models import Painter, Plan
 from .providers import Critic, Generator, Planner, normalize_image
 from .storage import Store, now
 
@@ -21,19 +22,27 @@ class PainterAgent:
         planner: Planner,
         generator: Generator,
         critic: Critic,
+        retriever: Retriever | None = None,
     ):
         self.store = store
         self.settings = settings
         self.planner = planner
         self.generator = generator
         self.critic = critic
+        self.memory = Memory(store)
+        self.retriever = retriever or self.memory
 
     def create(self, topic: str, painter_id: str, *,
-               on_started: Callable[[dict], None] | None = None) -> dict:
+               on_started: Callable[[dict], None] | None = None, learning: dict | None = None,
+               art_brief: dict | None = None, painter_snapshot: dict | None = None) -> dict:
         topic = topic.strip()
         if not topic:
             raise ValueError("Topic cannot be empty")
-        painter = self.store.painter(painter_id)
+        painter = Painter.model_validate(painter_snapshot) if painter_snapshot else self.store.painter(painter_id)
+        if painter.painter_id != painter_id:
+            raise ValueError('Painter snapshot mismatch')
+        art_brief = art_brief if art_brief is not None else (
+            {'growth_goal': painter.growth_goal} if painter.growth_goal else {})
         for role in (self.settings.planner, self.settings.generator, self.settings.critic):
             role.credential()  # Fail before incurring generation charges.
         config = {
@@ -42,9 +51,26 @@ class PainterAgent:
         }
         entry = self.store.begin(painter_id, topic, config)
         try:
+            entry['learning'] = learning
+            entry['art_brief'] = art_brief
+            entry['painter_snapshot'] = painter.model_dump()
+            query = topic + ' ' + art_brief.get('growth_goal', '') + ' ' + (art_brief.get('practice') or {}).get('focus', '')
+            notes = (self.retriever.search(painter_id, query, (learning or {}).get('skills', []),
+                                          k=self.settings.memory_top_k)
+                     if self.settings.memory_top_k else [])
+            entry['memory_used'] = [{'entry_id': note['entry_id'], 'topic': note['topic'][:160],
+                                     'rules': [rule[:160] for rule in note['rules'][:2]]}
+                                    for note in notes[:self.settings.memory_top_k]]
+            entry['memory_policy'] = {'retrieval_limit': self.settings.memory_top_k}
+            self.store.save(entry)
             if on_started:
                 on_started(entry)
-            plan = self.planner.plan(topic, painter)
+            kwargs = {}
+            if entry['memory_used']:
+                kwargs['context'] = entry['memory_used']
+            if art_brief:
+                kwargs['requirements'] = art_brief
+            plan = self.planner.plan(topic, painter, **kwargs)
             entry["plan"] = plan.model_dump()
             entry["status"] = "generating"
             self.store.save(entry)
@@ -84,11 +110,14 @@ class PainterAgent:
         try:
             image = self.store.image_path(entry["image_path"])
             attempt["image_sha256"] = hashlib.sha256(image.read_bytes()).hexdigest()
+            kwargs = {'requirements': entry['art_brief']} if entry.get('art_brief') else {}
             critique = self.critic.evaluate(
                 image,
                 entry["topic"],
-                self.store.painter(entry["painter_id"]),
+                Painter.model_validate(entry['painter_snapshot']) if entry.get('painter_snapshot')
+                else self.store.painter(entry["painter_id"]),
                 Plan.model_validate(entry["plan"]),
+                **kwargs,
             )
             entry["critique"] = critique.model_dump()
             entry["simulation"] = {
@@ -108,6 +137,8 @@ class PainterAgent:
         except Exception as exc:
             attempt.update(status="failed", finished_at=now())
             self._fail(entry, "evaluation_failed", exc)
+        # Learning notes are derived from a successful critique, never fabricated on failure.
+        self.memory.record(entry)
         return entry
 
     def _fail(self, entry: dict, status: str, exc: Exception):

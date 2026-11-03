@@ -1,0 +1,47 @@
+schema_version: 1
+id: default_curriculum
+title: 从观察到构图
+stages:
+  - id: foundations
+    name: L1 · 造型与光色
+    goals: [辨认主体, 组织明暗, 控制色彩]
+    lessons:
+      - id: simple_shapes
+        name: 看见基本形
+        task: A red apple and a white ceramic cup on a wooden table in soft daylight
+        skills: [simple_shapes, subject_clarity]
+        pass_score: 6.5
+      - id: light_shadow
+        name: 光与影的方向
+        task: A white sphere on a gray table lit from the left with a clear cast shadow
+        skills: [light_direction, tonal_contrast]
+        pass_score: 6.5
+        depends_on: [simple_shapes]
+      - id: limited_palette
+        name: 三种颜色的练习
+        task: A still life of a blue vase and yellow flowers using blue yellow and white
+        skills: [limited_palette, color_harmony]
+        pass_score: 6.5
+        depends_on: [light_shadow]
+  - id: composition
+    name: L2 · 空间与构图
+    goals: [明确视觉焦点, 建立空间层次, 平衡画面]
+    lessons:
+      - id: focal_point
+        name: 把目光留住
+        task: A small red cottage beside a quiet green meadow with a clear visual focal point
+        skills: [focal_point, visual_balance]
+        pass_score: 7
+        depends_on: [limited_palette]
+      - id: depth_layers
+        name: 远近之间
+        task: A landscape with foreground flowers a middle-ground lake and distant blue mountains
+        skills: [depth_layers, atmospheric_perspective]
+        pass_score: 7
+        depends_on: [focal_point]
+      - id: visual_rhythm
+        name: 画面的节奏
+        task: A winding garden path lined with trees leading to a small sunlit gate
+        skills: [leading_lines, visual_rhythm]
+        pass_score: 7
+        depends_on: [depth_layers]

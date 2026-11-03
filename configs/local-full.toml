@@ -1,5 +1,7 @@
 # All roles use real local inference. Requires text and vision servers.
 data_dir = "../data"
+# Keep context compact for the 0.5B planner; set 0 for memory-off comparisons.
+memory_top_k = 1
 
 [planner]
 provider = "openai_compatible"

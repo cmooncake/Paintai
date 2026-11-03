@@ -148,6 +148,22 @@ def test_plan_schema_contains_no_optional_defaults():
     assert schema["additionalProperties"] is False
 
 
+def test_context_uses_rules_and_bounded_output_schema(monkeypatch, painter, plan):
+    def handler(request):
+        body = json.loads(request.content)
+        user = json.loads(body['messages'][1]['content'][0]['text'])
+        assert user['prior_experience'] == ['Use a clear focal point.']
+        assert 'old-private-id' not in body['messages'][1]['content'][0]['text']
+        schema = body['response_format']['json_schema']['schema']
+        assert schema['properties']['prompt']['maxLength'] == 450
+        assert schema['$defs']['CompactPerception']['properties']['constraints']['maxItems'] == 3
+        return httpx.Response(200, json={'choices':[{'message':{'content':plan.model_dump_json()}}]})
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        provider = CompatibleProvider(config(monkeypatch), client)
+        assert provider.plan('山', painter, context=[{'entry_id':'old-private-id',
+                             'rules':['Use a clear focal point.']}]) == plan
+
+
 def test_local_api_needs_no_secret(monkeypatch, painter, plan):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     local = ProviderConfig(

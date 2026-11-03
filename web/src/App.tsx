@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DirectionBrief } from "./Direction";
 import type { FormEvent, ReactNode } from "react";
 import { active, asset, post, request } from "./api";
+import LearningPanel from "./LearningPanel";
 import type { Creation, Job, Painter, System } from "./api";
 
 const dimensions: Record<string, string> = {
@@ -160,7 +162,7 @@ export default function App() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [system, setSystem] = useState<System | null>(null);
-  const [view, setView] = useState<"studio" | "gallery">("studio");
+  const [view, setView] = useState<"studio" | "gallery" | "learning">("studio");
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -372,6 +374,14 @@ export default function App() {
             <Icon name="gallery" />
             作品库<span className="nav-count">{total}</span>
           </button>
+          <button
+            className={view === "learning" ? "nav-item selected" : "nav-item"}
+            onClick={() => setView("learning")}
+          >
+            <Icon name="brush" />
+            学习
+            <span className="nav-dot" />
+          </button>
         </nav>
         <div className="sidebar-section">
           <div className="nav-label">
@@ -429,14 +439,20 @@ export default function App() {
                 ? "本地画室已就绪"
                 : "画室服务待连接"}
           </span>
-          <span className="version">M0</span>
+          <span className="version">M1</span>
         </div>
       </aside>
       <main>
         <header className="topbar">
           <div className="breadcrumb">
             我的空间 <span>/</span>{" "}
-            <strong>{view === "studio" ? "画室" : "作品库"}</strong>
+            <strong>
+              {view === "studio"
+                ? "画室"
+                : view === "learning"
+                  ? "学习手记"
+                  : "作品库"}
+            </strong>
           </div>
           <div className="topbar-right">
             <span className="quiet-tag">
@@ -451,14 +467,18 @@ export default function App() {
             <div>
               <div className="eyebrow">YOUR CREATIVE SPACE</div>
               <h1>
-                {view === "studio"
-                  ? "今天，想画些什么？"
-                  : "把灵感，收藏成作品。"}
+                {view === "learning"
+                  ? "每一笔，都有新的收获。"
+                  : view === "studio"
+                    ? "今天，想画些什么？"
+                    : "把灵感，收藏成作品。"}
               </h1>
               <p>
-                {view === "studio"
-                  ? "从一个念头开始，让画师为你落笔。"
-                  : "每一幅画，都留着一次探索的痕迹。"}
+                {view === "learning"
+                  ? "循着课程练习，让经验回到下一次创作。"
+                  : view === "studio"
+                    ? "从一个念头开始，让画师为你落笔。"
+                    : "每一幅画，都留着一次探索的痕迹。"}
               </p>
             </div>
             <div className="heading-decoration" aria-hidden="true">
@@ -498,6 +518,22 @@ export default function App() {
             </div>
           ) : (
             <>
+              {view === "learning" && painter && (
+                <LearningPanel
+                  key={selected}
+                  painterId={selected}
+                  painterName={painter.name}
+                  running={running}
+                  ready={!!statusReady}
+                  onJob={(job) =>
+                    setJobs((old) => [
+                      job,
+                      ...old.filter((j) => j.id !== job.id),
+                    ])
+                  }
+                  onOpen={setDetail}
+                />
+              )}
               {view === "studio" && (
                 <section className="studio-grid">
                   <div className="creation-panel">
@@ -633,12 +669,26 @@ export default function App() {
                   </div>
                 </section>
               )}
+              {view === "studio" && (
+                <button
+                  className="learning-link"
+                  onClick={() => setView("learning")}
+                >
+                  <span>开始系统练习 · 查看课程与创作记忆</span>
+                  <small>让下一幅画，有经验可循 →</small>
+                </button>
+              )}
               {running && (
                 <section className="progress-panel" aria-live="polite">
                   <div className="progress-title">
                     <span className="spinner" />
                     <div>
-                      <strong>{stages[running.stage] || "画师正在工作"}</strong>
+                      <strong>
+                        {running.kind === "train"
+                          ? `课程练习 ${running.training?.completed || 0}/${running.training?.total || 3} · `
+                          : ""}
+                        {stages[running.stage] || "画师正在工作"}
+                      </strong>
                       <p>
                         {running.kind === "evaluate"
                           ? "让画师重新欣赏这幅作品。"
@@ -792,7 +842,11 @@ export default function App() {
                             </span>
                             <span>{date(entry.created_at)}</span>
                           </div>
-                          <h3>{entry.topic}</h3>
+                          <h3>
+                            {entry.learning?.lesson_name
+                              ? `${entry.learning.lesson_name} · 练习 ${entry.learning.exercise}`
+                              : entry.topic}
+                          </h3>
                           <div className="art-bottom">
                             <span>
                               {painter ? styleLabel(painter.style) : ""}
@@ -890,13 +944,46 @@ export default function App() {
               </div>
             </div>
             <div className="detail-copy">
+              <DirectionBrief brief={detail.art_brief} />
+              {detail.learning && (
+                <div className="memory-reference">
+                  课程练习 ·{" "}
+                  {detail.learning.lesson_name || detail.learning.lesson_id} ·
+                  第 {detail.learning.exercise} 幅
+                </div>
+              )}
+              {!!detail.memory_used?.length && (
+                <details className="memory-reference">
+                  <summary>
+                    本次参考了 {detail.memory_used.length} 条创作记忆
+                  </summary>
+                  {detail.memory_used.map((note) => (
+                    <div key={note.entry_id}>
+                      <p>{note.topic}</p>
+                      {note.rules.map((rule, i) => (
+                        <p key={i}>· {rule}</p>
+                      ))}
+                    </div>
+                  ))}
+                </details>
+              )}
               {error && (
                 <div className="alert" role="alert">
                   {error}
                 </div>
               )}
               <div className="eyebrow">CREATIVE NOTES</div>
-              <h2>{detail.topic}</h2>
+              <h2>
+                {detail.learning?.lesson_name
+                  ? `${detail.learning.lesson_name} · 练习 ${detail.learning.exercise}`
+                  : detail.topic}
+              </h2>
+              {detail.learning && (
+                <details>
+                  <summary>查看本次题目</summary>
+                  <p>{detail.topic}</p>
+                </details>
+              )}
               {detail.simulated && (
                 <p className="simulation-note">
                   本作品包含模拟环节，模拟评分不代表真实质量。
@@ -1012,6 +1099,7 @@ function NewPainterModal({
 }) {
   const [name, setName] = useState("");
   const [style, setStyle] = useState("watercolor painting");
+  const [goal, setGoal] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function submit(e: FormEvent) {
@@ -1019,7 +1107,13 @@ function NewPainterModal({
     if (busy) return;
     setBusy(true);
     try {
-      onCreated(await post<Painter>("/painters", { name: name.trim(), style }));
+      onCreated(
+        await post<Painter>("/painters", {
+          name: name.trim(),
+          style,
+          growth_goal: goal,
+        }),
+      );
     } catch (e) {
       setError((e as Error).message);
       setBusy(false);
@@ -1058,7 +1152,17 @@ function NewPainterModal({
             </option>
           ))}
         </select>
-        <p>每位画师拥有独立的作品库和创作记录。</p>
+        <label htmlFor="new-growth-goal">长期成长目标（选填）</label>
+        <textarea
+          id="new-growth-goal"
+          maxLength={400}
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+          placeholder="例如：擅长清淡水彩山水，重点学习空间层次，避免颜色过饱和。"
+        />
+        <p>
+          每位画师拥有独立的目标、作品库和创作记录。目标可在课程学习中修改。
+        </p>
         {error && (
           <div className="alert" role="alert">
             {error}

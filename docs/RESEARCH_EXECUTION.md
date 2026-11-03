@@ -248,6 +248,8 @@ class PainterAgent:
 
 ### 5.2 Phase 1：课程系统（2–3 周）
 
+**实施进度（2026-11-03）**：M1 的默认 L1–L2、Spec 校验、三次练习过关、CLI 有界自动推进及网页学习进度已实现，使用说明见 [LEARNING.md](LEARNING.md)。Phase 2a 当前先提供本地文本 / 技能匹配和 Critic 建议注入基线，向量检索、best-worst 蒸馏及 A/B 实验仍待实现。
+
 **目标**：画师开始“系统学习”。从默认模板（L1–L6 简化版）出发，跑通关卡推进逻辑。
 
 **里程碑 M1**：`paintai train --painter painter_01 --spec default_curriculum` 启动训练后，画师按关卡顺序逐一完成训练任务，Critic 评估通过后自动推进。

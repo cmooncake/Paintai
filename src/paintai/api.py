@@ -14,12 +14,16 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import Field
 
 from .config import Settings, load_settings
+from .curriculum.spec import CurriculumSpec, direction_curriculum, load_spec
 from .jobs import Jobs, QueueConflict, Worker
-from .models import Model, Painter, PainterId, Text
+from .learning import LearningError
+from .memory import Memory
+from .models import DirectionText, Model, Painter, PainterId, PracticeOptions, Text
 from .storage import Store
 
 
 class NewPainter(Model):
+    growth_goal: DirectionText = ''
     name: Text = Field(max_length=60)
     style: Text = Field(default="watercolor painting", max_length=200)
 
@@ -29,9 +33,17 @@ class CreateRequest(Model):
     topic: Text = Field(max_length=1500)
 
 
+class GoalRequest(Model):
+    growth_goal: DirectionText = ''
+
+
+class TrainRequest(PracticeOptions):
+    lesson_id: PainterId | None = None
+
+
 def public_creation(entry):
     fields = ("id", "painter_id", "topic", "created_at", "updated_at", "status", "plan",
-              "critique", "simulated", "simulation")
+              "critique", "simulated", "simulation", "learning", "memory_used", "art_brief")
     result = {key: entry.get(key) for key in fields}
     result["image_url"] = (f"/api/v1/painters/{entry['painter_id']}/creations/{entry['id']}/image"
                            if entry.get("image_path") else None)
@@ -48,6 +60,7 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
     store = Store(settings.data_dir)
     jobs = Jobs(store, settings)
     worker = Worker(jobs)
+    learning, memory = jobs.learning, Memory(store)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -73,6 +86,10 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
     async def conflict(request, exc):
         return JSONResponse({"detail": str(exc)}, status_code=409)
 
+    @app.exception_handler(LearningError)
+    async def invalid_learning(request, exc):
+        return JSONResponse({'detail': str(exc)}, status_code=409)
+
     @app.exception_handler(ValueError)
     async def missing(request, exc):
         return JSONResponse({"detail": "请求的画师、作品或任务不存在，或尚不可评价。"}, status_code=404)
@@ -81,6 +98,12 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
         result = {key: job[key] for key in ("id", "painter_id", "kind", "topic", "entry_id", "status",
                                           "error", "created_at", "updated_at")}
         result["stage"] = job["status"]
+        result['training'] = None
+        if job['kind'] == 'train':
+            payload = json.loads(job['payload'])
+            record = next((r for r in learning.rounds(job['painter_id']) if r['id'] == job['id']), None)
+            result['training'] = {'name': payload['name'], 'total': len(payload['tasks']),
+                                  'completed': len(record['results']) if record else 0}
         if job["entry_id"] and job["status"] == "running":
             try:
                 result["stage"] = store.get(job["painter_id"], job["entry_id"])["status"]
@@ -117,10 +140,51 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
     def list_painters():
         return store.painters()
 
+    @app.get('/api/v1/curricula/default')
+    def default_curriculum():
+        return load_spec().model_dump()
+
+    @app.get('/api/v1/painters/{painter_id}/learning')
+    def progress(painter_id: str):
+        return learning.progress(painter_id)
+
+    @app.post('/api/v1/painters/{painter_id}/curriculum')
+    def assign_curriculum(painter_id: str, body: CurriculumSpec):
+        return learning.assign(painter_id, body)
+
+    @app.post('/api/v1/painters/{painter_id}/train', status_code=202)
+    def train(painter_id: str, body: TrainRequest,
+              idempotency_key: str = Header(min_length=8, max_length=100)):
+        return job_response(jobs.submit(painter_id, 'train', body.lesson_id or '', idempotency_key,
+                            options=PracticeOptions.model_validate(body.model_dump(exclude={'lesson_id'}))))
+
+    @app.post('/api/v1/painters/{painter_id}/goal')
+    def update_goal(painter_id: str, body: GoalRequest):
+        return store.update_goal(painter_id, body.growth_goal)
+
+    @app.post('/api/v1/painters/{painter_id}/curriculum/preview')
+    def preview_curriculum(painter_id: str):
+        return direction_curriculum(store.painter(painter_id).growth_goal)
+
+    @app.post('/api/v1/painters/{painter_id}/train/preview')
+    def preview_training(painter_id: str, body: TrainRequest):
+        return learning.snapshot(painter_id, body.lesson_id, PracticeOptions.model_validate(
+            body.model_dump(exclude={'lesson_id'})))
+
+    @app.get('/api/v1/painters/{painter_id}/memory')
+    def list_memory(painter_id: str):
+        return {'items': memory.list(painter_id), 'retrieval': 'local_text_skills_v1'}
+
+    @app.post('/api/v1/painters/{painter_id}/memory/sync')
+    def sync_memory(painter_id: str):
+        if any(j['status'] in ('queued','running') for j in jobs.list(painter_id)):
+            raise QueueConflict('请等当前任务完成后再整理记忆。')
+        return {'processed': memory.sync(painter_id)}
+
     @app.post("/api/v1/painters", status_code=201)
     def add_painter(body: NewPainter):
         return store.add_painter(Painter(painter_id="painter_" + uuid4().hex[:12],
-                                         name=body.name, style=body.style))
+                                         name=body.name, style=body.style, growth_goal=body.growth_goal))
 
     @app.get("/api/v1/painters/{painter_id}/creations")
     def gallery(painter_id: str, limit: int = Query(60, ge=1, le=200),

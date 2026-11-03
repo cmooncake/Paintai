@@ -1,4 +1,5 @@
 export interface Painter {
+  growth_goal?: string;
   painter_id: string;
   name: string;
   style: string;
@@ -10,6 +11,15 @@ export interface Critique {
   improvements: string[];
 }
 export interface Creation {
+  art_brief?: import("./Direction").ArtBrief | null;
+  learning?: {
+    lesson_name?: string;
+    stage_id: string;
+    lesson_id: string;
+    round_id: string;
+    exercise: number;
+  } | null;
+  memory_used?: { entry_id: string; topic: string; rules: string[] }[] | null;
   id: string;
   painter_id: string;
   topic: string;
@@ -28,6 +38,7 @@ export interface Creation {
   }[];
 }
 export interface Job {
+  training?: { name: string; completed: number; total: number } | null;
   id: string;
   painter_id: string;
   kind: string;
@@ -59,6 +70,17 @@ export async function request<T>(
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
+    if (Array.isArray(body.detail)) {
+      throw new Error(
+        body.detail
+          .slice(0, 3)
+          .map(
+            (issue: { loc?: string[]; msg?: string }) =>
+              `${issue.loc?.filter((part) => part !== "body").join(".") || "内容"}：${issue.msg || "格式不正确"}`,
+          )
+          .join("；"),
+      );
+    }
     throw new Error(
       typeof body.detail === "string"
         ? body.detail

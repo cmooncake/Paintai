@@ -72,7 +72,24 @@ class Store:
             rows = connection.execute(
                 "SELECT profile FROM painters ORDER BY created_at, painter_id"
             ).fetchall()
-        return [json.loads(row["profile"]) for row in rows]
+        return [Painter.model_validate_json(row['profile']).model_dump() for row in rows]
+
+    def update_goal(self, painter_id: str, goal: str) -> Painter:
+        from .learning import LearningError
+        with self.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            row = db.execute('SELECT profile FROM painters WHERE painter_id=?', (painter_id,)).fetchone()
+            if not row:
+                raise ValueError('Painter not found')
+            if db.execute("SELECT 1 FROM sqlite_master WHERE name='jobs'").fetchone():
+                if db.execute("SELECT 1 FROM jobs WHERE painter_id=? AND status IN ('queued','running')",
+                              (painter_id,)).fetchone():
+                    raise LearningError('请等待当前任务完成后修改长期目标。')
+            value = json.loads(row['profile'])
+            value['growth_goal'] = goal
+            painter = Painter.model_validate(value)
+            db.execute('UPDATE painters SET profile=? WHERE painter_id=?', (painter.model_dump_json(), painter_id))
+        return painter
 
     def begin(self, painter_id: str, topic: str, config: dict) -> dict:
         self.painter(painter_id)

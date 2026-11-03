@@ -1,4 +1,5 @@
 """Durable local job queue. One worker owns model execution; HTTP never waits on inference."""
+import json
 import os
 import threading
 from uuid import uuid4
@@ -7,6 +8,8 @@ import httpx
 
 from .agent import CreationFailed, PainterAgent
 from .config import Settings
+from .learning import Learning
+from .models import PracticeOptions
 from .providers import make_provider
 from .storage import Store, now
 
@@ -18,6 +21,7 @@ class QueueConflict(ValueError):
 class Jobs:
     def __init__(self, store: Store, settings: Settings):
         self.store, self.settings = store, settings
+        self.learning = Learning(store)
         with store.connect() as db:
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS jobs (
@@ -30,8 +34,11 @@ class Jobs:
                 CREATE UNIQUE INDEX IF NOT EXISTS one_job_per_painter
                     ON jobs(painter_id) WHERE status IN ('queued', 'running');
             """)
+            if 'payload' not in {row['name'] for row in db.execute('PRAGMA table_info(jobs)')}:
+                db.execute("ALTER TABLE jobs ADD COLUMN payload TEXT NOT NULL DEFAULT '{}'")
 
-    def submit(self, painter_id, kind, topic, key, entry_id=None):
+    def submit(self, painter_id, kind, topic, key, entry_id=None, *, options=None):
+        options = options or PracticeOptions()
         self.store.painter(painter_id)
         if entry_id:
             entry = self.store.get(painter_id, entry_id)
@@ -41,9 +48,11 @@ class Jobs:
             db.execute("BEGIN IMMEDIATE")
             previous = db.execute("SELECT * FROM jobs WHERE request_key=?", (key,)).fetchone()
             if previous:
+                if kind == 'train' and json.loads(previous['payload']).get('_request', PracticeOptions().model_dump()) != options.model_dump():
+                    raise QueueConflict('请求标识已用于其他练习要求，请重新提交。')
                 if (previous["painter_id"], previous["kind"], previous["topic"], previous["entry_id"]) != (
                     painter_id, kind, topic, entry_id
-                ) and not (kind == "create" and previous["painter_id"] == painter_id
+                ) and not (kind in ('create', 'train') and previous["painter_id"] == painter_id
                            and previous["kind"] == kind and previous["topic"] == topic):
                     raise QueueConflict("请求标识已用于其他操作，请刷新后重试。")
                 return dict(previous)
@@ -53,9 +62,14 @@ class Jobs:
             if db.execute("SELECT COUNT(*) FROM jobs WHERE status IN ('queued','running')").fetchone()[0] >= 8:
                 raise QueueConflict("画室当前任务较多，请稍后再试。")
             job_id, stamp = uuid4().hex, now()
-            db.execute("INSERT INTO jobs VALUES (?,?,?,?,?,'queued',NULL,?,?,?,?)",
+            payload = (self.learning.snapshot(painter_id, topic or None, options) if kind == 'train'
+                       else {'painter_snapshot': self.store.painter(painter_id).model_dump()})
+            if kind == 'train':
+                payload['_request'] = options.model_dump()
+            db.execute("INSERT INTO jobs (id,painter_id,kind,topic,entry_id,status,error,created_at,"
+                       "updated_at,request_key,settings,payload) VALUES (?,?,?,?,?,'queued',NULL,?,?,?,?,?)",
                        (job_id, painter_id, kind, topic, entry_id, stamp, stamp, key,
-                        self.settings.model_dump_json()))
+                        self.settings.model_dump_json(), json.dumps(payload, ensure_ascii=False)))
         return self.get(job_id)
 
     def get(self, job_id):
@@ -77,6 +91,7 @@ class Jobs:
                        "error=?, updated_at=? WHERE id=?", (status, entry_id, error, now(), job_id))
 
     def recover(self):
+        self.learning.recover()
         with self.store.connect() as db:
             db.execute("UPDATE jobs SET status='interrupted', error=?, updated_at=? WHERE status='running'",
                        ("上次运行意外中断。已保存的作品仍可查看，有图片时可以重新评价。", now()))
@@ -135,8 +150,13 @@ class Worker:
                                      *(make_provider(getattr(settings, role), client)
                                        for role in ("planner", "generator", "critic")))
                 if job["kind"] == "create":
-                    result = agent.create(job["topic"], job["painter_id"], on_started=lambda entry:
+                    result = agent.create(job["topic"], job["painter_id"],
+                                          painter_snapshot=json.loads(job['payload']).get('painter_snapshot'), on_started=lambda entry:
                                           self.jobs.update(job["id"], entry_id=entry["id"]))
+                elif job['kind'] == 'train':
+                    result = self.jobs.learning.run(agent, job['painter_id'], json.loads(job['payload']),
+                                                   run_id=job['id'], on_started=lambda entry:
+                                                   self.jobs.update(job['id'], entry_id=entry['id']))
                 else:
                     result = agent.evaluate(job["painter_id"], job["entry_id"], force=True)
             self.jobs.update(job["id"], status="succeeded", entry_id=result["id"])

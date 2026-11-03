@@ -87,6 +87,7 @@ class ProviderConfig(Model):
 
 class Settings(Model):
     data_dir: Path = Path("data")
+    memory_top_k: int = Field(default=3, ge=0, le=5)
     planner: ProviderConfig = Field(default_factory=ProviderConfig)
     generator: ProviderConfig = Field(default_factory=ProviderConfig)
     critic: ProviderConfig = Field(default_factory=ProviderConfig)

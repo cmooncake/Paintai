@@ -1,13 +1,19 @@
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
+from uuid import uuid4
 
 import httpx
 from pydantic import ValidationError
 
 from .agent import CreationFailed, PainterAgent
 from .config import load_settings
+from .curriculum.spec import load_spec
+from .jobs import Jobs, Worker
+from .learning import Learning
+from .memory import Memory
 from .models import Painter
 from .providers import make_provider
 from .storage import Store
@@ -32,6 +38,16 @@ def parser() -> argparse.ArgumentParser:
     create = commands.add_parser("create")
     create.add_argument("topic")
     create.add_argument("--painter", required=True)
+    train = commands.add_parser('train', help='Run bounded three-exercise lesson rounds')
+    train.add_argument('--painter', required=True)
+    train.add_argument('--spec', help='default_curriculum or path to YAML')
+    train.add_argument('--lessons', type=int, default=1)
+    train.add_argument('--lesson', help='Repeat an unlocked lesson by stable ID')
+    progress = commands.add_parser('progress')
+    progress.add_argument('--painter', required=True)
+    memory = commands.add_parser('memory')
+    memory.add_argument('--painter', required=True)
+    memory.add_argument('--sync', action='store_true')
     gallery = commands.add_parser("gallery")
     gallery.add_argument("--painter", required=True)
     gallery.add_argument("--limit", type=int, default=20)
@@ -74,6 +90,38 @@ def main(argv=None) -> int:
             value = store.gallery(args.painter, args.limit)
         elif args.command == "show":
             value = store.get(args.painter, args.entry_id)
+        elif args.command == 'progress':
+            value = Learning(store).progress(args.painter)
+        elif args.command == 'memory':
+            memory = Memory(store)
+            if args.sync:
+                memory.sync(args.painter)
+            value = memory.list(args.painter)
+        elif args.command == 'train':
+            if not 1 <= args.lessons <= 12:
+                raise ValueError('lessons must be between 1 and 12')
+            jobs = Jobs(store, settings)
+            worker = Worker(jobs)
+            worker.start()  # Same ownership lock as HTTP API; never run two trainers.
+            try:
+                if args.spec:
+                    jobs.learning.assign(args.painter, load_spec(
+                        None if args.spec == 'default_curriculum' else Path(args.spec)))
+                for _ in range(args.lessons):
+                    before = jobs.learning.progress(args.painter)
+                    if not before['current'] and not args.lesson:
+                        break
+                    job = jobs.submit(args.painter, 'train', args.lesson or '', uuid4().hex)
+                    while jobs.get(job['id'])['status'] in ('queued', 'running'):
+                        time.sleep(0.2)
+                    if jobs.get(job['id'])['status'] != 'succeeded':
+                        raise ValueError(jobs.get(job['id'])['error'])
+                    after = jobs.learning.progress(args.painter)
+                    if after['completed'] == before['completed']:
+                        break  # No unbounded retries of failed/simulated lessons.
+                value = jobs.learning.progress(args.painter)
+            finally:
+                worker.stop()
         else:
             # HTTPX has no automatic request retries here; paid calls are explicit.
             with httpx.Client() as client:
