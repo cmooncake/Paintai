@@ -12,23 +12,47 @@ class Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class StyleTraits(Model):
+    palette: Text = Field(max_length=1000)
+    lines: Text = Field(max_length=1000)
+    lighting: Text = Field(max_length=1000)
+    composition: Text = Field(max_length=1000)
+    texture: Text = Field(max_length=1000)
+    guidance: list[Annotated[Text, Field(max_length=400)]] = Field(min_length=1, max_length=6)
+
+
+class StyleProfile(Model):
+    id: Text
+    name: Text = Field(max_length=100)
+    traits: StyleTraits
+    reference_ids: list[str] = Field(max_length=3)
+    reference_hashes: list[str] = Field(max_length=3)
+    created_at: str
+
+
 class Painter(Model):
     painter_id: PainterId
     name: Text
     style: Text = "自由风格"
-    growth_goal: DirectionText = ''
+    growth_goal: DirectionText = ""
+    style_profile: StyleProfile | None = None
     schema_version: int = 1
 
 
 class PracticeOptions(Model):
-    instructions: DirectionText = ''
-    focus: Annotated[str, StringConstraints(strip_whitespace=True, max_length=100)] = ''
-    difficulty: Literal['gentle', 'standard', 'challenge'] = 'standard'
+    instructions: DirectionText = ""
+    focus: Annotated[str, StringConstraints(strip_whitespace=True, max_length=100)] = ""
+    difficulty: Literal["gentle", "standard", "challenge"] = "standard"
     count: int = Field(default=3, ge=1, le=6)
 
     @property
     def assessment(self):
-        return self.count == 3 and self.difficulty == 'standard' and not self.instructions and not self.focus
+        return (
+            self.count == 3
+            and self.difficulty == "standard"
+            and not self.instructions
+            and not self.focus
+        )
 
 
 class Perception(Model):

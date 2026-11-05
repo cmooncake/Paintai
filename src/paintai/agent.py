@@ -32,17 +32,37 @@ class PainterAgent:
         self.memory = Memory(store)
         self.retriever = retriever or self.memory
 
-    def create(self, topic: str, painter_id: str, *,
-               on_started: Callable[[dict], None] | None = None, learning: dict | None = None,
-               art_brief: dict | None = None, painter_snapshot: dict | None = None) -> dict:
+    def create(
+        self,
+        topic: str,
+        painter_id: str,
+        *,
+        on_started: Callable[[dict], None] | None = None,
+        learning: dict | None = None,
+        art_brief: dict | None = None,
+        painter_snapshot: dict | None = None,
+        experiment: dict | None = None,
+        evaluation_requirements: dict | None = None,
+        prepared_plan: dict | None = None,
+    ) -> dict:
         topic = topic.strip()
         if not topic:
             raise ValueError("Topic cannot be empty")
-        painter = Painter.model_validate(painter_snapshot) if painter_snapshot else self.store.painter(painter_id)
+        painter = (
+            Painter.model_validate(painter_snapshot)
+            if painter_snapshot
+            else self.store.painter(painter_id)
+        )
         if painter.painter_id != painter_id:
-            raise ValueError('Painter snapshot mismatch')
-        art_brief = art_brief if art_brief is not None else (
-            {'growth_goal': painter.growth_goal} if painter.growth_goal else {})
+            raise ValueError("Painter snapshot mismatch")
+        art_brief = (
+            art_brief
+            if art_brief is not None
+            else ({"growth_goal": painter.growth_goal} if painter.growth_goal else {})
+        )
+        art_brief = dict(art_brief)
+        if painter.style_profile:
+            art_brief.setdefault("style_profile", painter.style_profile.model_dump())
         for role in (self.settings.planner, self.settings.generator, self.settings.critic):
             role.credential()  # Fail before incurring generation charges.
         config = {
@@ -51,26 +71,58 @@ class PainterAgent:
         }
         entry = self.store.begin(painter_id, topic, config)
         try:
-            entry['learning'] = learning
-            entry['art_brief'] = art_brief
-            entry['painter_snapshot'] = painter.model_dump()
-            query = topic + ' ' + art_brief.get('growth_goal', '') + ' ' + (art_brief.get('practice') or {}).get('focus', '')
-            notes = (self.retriever.search(painter_id, query, (learning or {}).get('skills', []),
-                                          k=self.settings.memory_top_k)
-                     if self.settings.memory_top_k else [])
-            entry['memory_used'] = [{'entry_id': note['entry_id'], 'topic': note['topic'][:160],
-                                     'rules': [rule[:160] for rule in note['rules'][:2]]}
-                                    for note in notes[:self.settings.memory_top_k]]
-            entry['memory_policy'] = {'retrieval_limit': self.settings.memory_top_k}
+            entry["learning"] = learning
+            entry["experiment"] = experiment
+            entry["reference_conditioning"] = getattr(self.generator, "reference_metadata", None)
+            entry["lora_conditioning"] = getattr(self.generator, "lora_metadata", None)
+            entry["pipeline_version"] = "protected-style-v3"
+            entry["art_brief"] = art_brief
+            entry["evaluation_requirements"] = evaluation_requirements
+            entry["painter_snapshot"] = painter.model_dump()
+            query = (
+                topic
+                + " "
+                + art_brief.get("growth_goal", "")
+                + " "
+                + (art_brief.get("practice") or {}).get("focus", "")
+            )
+            notes = (
+                self.retriever.search(
+                    painter_id,
+                    query,
+                    (learning or {}).get("skills", []),
+                    k=self.settings.memory_top_k,
+                )
+                if self.settings.memory_top_k
+                else []
+            )
+            entry["memory_used"] = [
+                {
+                    "entry_id": note["entry_id"],
+                    "topic": note["topic"][:160],
+                    "source": note.get("source", "critic_feedback"),
+                    "rule_id": note.get("id"),
+                    "source_entries": [e["entry_id"] for e in note.get("evidence", [])],
+                    "rules": [rule[:160] for rule in note["rules"][:2]],
+                }
+                for note in notes[: self.settings.memory_top_k]
+            ]
+            entry["memory_policy"] = {"retrieval_limit": self.settings.memory_top_k}
             self.store.save(entry)
             if on_started:
                 on_started(entry)
             kwargs = {}
-            if entry['memory_used']:
-                kwargs['context'] = entry['memory_used']
+            if entry["memory_used"]:
+                kwargs["context"] = entry["memory_used"]
             if art_brief:
-                kwargs['requirements'] = art_brief
-            plan = self.planner.plan(topic, painter, **kwargs)
+                kwargs["requirements"] = art_brief
+            if prepared_plan is not None:
+                plan = Plan.model_validate(prepared_plan["plan"])
+                entry["generation_constraints"] = prepared_plan["generation_constraints"]
+            else:
+                plan = self.planner.plan(topic, painter, **kwargs)
+                if hasattr(self.generator, "prepare"):
+                    plan, entry["generation_constraints"] = self.generator.prepare(plan)
             entry["plan"] = plan.model_dump()
             entry["status"] = "generating"
             self.store.save(entry)
@@ -110,11 +162,17 @@ class PainterAgent:
         try:
             image = self.store.image_path(entry["image_path"])
             attempt["image_sha256"] = hashlib.sha256(image.read_bytes()).hexdigest()
-            kwargs = {'requirements': entry['art_brief']} if entry.get('art_brief') else {}
+            requirements = entry.get("evaluation_requirements")
+            if requirements is None:
+                requirements = entry.get("art_brief")
+            kwargs = {"requirements": requirements} if requirements else {}
+            if self.settings.critic.provider == "openai_compatible":
+                entry["rubric_version"] = attempt["rubric_version"] = "locked-requirements-v3"
             critique = self.critic.evaluate(
                 image,
                 entry["topic"],
-                Painter.model_validate(entry['painter_snapshot']) if entry.get('painter_snapshot')
+                Painter.model_validate(entry["painter_snapshot"])
+                if entry.get("painter_snapshot")
                 else self.store.painter(entry["painter_id"]),
                 Plan.model_validate(entry["plan"]),
                 **kwargs,

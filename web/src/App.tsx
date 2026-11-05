@@ -3,6 +3,7 @@ import { DirectionBrief } from "./Direction";
 import type { FormEvent, ReactNode } from "react";
 import { active, asset, post, request } from "./api";
 import LearningPanel from "./LearningPanel";
+import ModelSettingsPanel from "./ModelSettingsPanel";
 import type { Creation, Job, Painter, System } from "./api";
 
 const dimensions: Record<string, string> = {
@@ -162,7 +163,9 @@ export default function App() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [system, setSystem] = useState<System | null>(null);
-  const [view, setView] = useState<"studio" | "gallery" | "learning">("studio");
+  const [view, setView] = useState<
+    "studio" | "gallery" | "learning" | "models"
+  >("studio");
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -360,6 +363,13 @@ export default function App() {
         <div className="nav-label">我的空间</div>
         <nav aria-label="主导航">
           <button
+            className={view === "models" ? "nav-item selected" : "nav-item"}
+            onClick={() => setView("models")}
+          >
+            <Icon name="brush" />
+            模型设置
+          </button>
+          <button
             className={view === "studio" ? "nav-item selected" : "nav-item"}
             onClick={() => setView("studio")}
           >
@@ -439,7 +449,7 @@ export default function App() {
                 ? "本地画室已就绪"
                 : "画室服务待连接"}
           </span>
-          <span className="version">M1</span>
+          <span className="version">M2a</span>
         </div>
       </aside>
       <main>
@@ -447,11 +457,13 @@ export default function App() {
           <div className="breadcrumb">
             我的空间 <span>/</span>{" "}
             <strong>
-              {view === "studio"
-                ? "画室"
-                : view === "learning"
-                  ? "学习手记"
-                  : "作品库"}
+              {view === "models"
+                ? "模型设置"
+                : view === "studio"
+                  ? "画室"
+                  : view === "learning"
+                    ? "学习手记"
+                    : "作品库"}
             </strong>
           </div>
           <div className="topbar-right">
@@ -467,18 +479,22 @@ export default function App() {
             <div>
               <div className="eyebrow">YOUR CREATIVE SPACE</div>
               <h1>
-                {view === "learning"
-                  ? "每一笔，都有新的收获。"
-                  : view === "studio"
-                    ? "今天，想画些什么？"
-                    : "把灵感，收藏成作品。"}
+                {view === "models"
+                  ? "为画师换一套更好的工具。"
+                  : view === "learning"
+                    ? "每一笔，都有新的收获。"
+                    : view === "studio"
+                      ? "今天，想画些什么？"
+                      : "把灵感，收藏成作品。"}
               </h1>
               <p>
-                {view === "learning"
-                  ? "循着课程练习，让经验回到下一次创作。"
-                  : view === "studio"
-                    ? "从一个念头开始，让画师为你落笔。"
-                    : "每一幅画，都留着一次探索的痕迹。"}
+                {view === "models"
+                  ? "独立配置构思、生图与视觉评价服务。"
+                  : view === "learning"
+                    ? "循着课程练习，让经验回到下一次创作。"
+                    : view === "studio"
+                      ? "从一个念头开始，让画师为你落笔。"
+                      : "每一幅画，都留着一次探索的痕迹。"}
               </p>
             </div>
             <div className="heading-decoration" aria-hidden="true">
@@ -501,10 +517,18 @@ export default function App() {
           {!statusReady && system && (
             <div className="service-message">
               <Icon name="clock" size={17} />
-              有模型服务尚未就绪。作品仍可浏览，创作前请启动本地模型服务。
+              有模型服务尚未就绪。作品仍可浏览，请在模型设置中检查服务地址与认证。
             </div>
           )}
-          {!painters.length && !loading ? (
+          {view === "models" ? (
+            <ModelSettingsPanel
+              onSaved={() => {
+                void request<System>("/system")
+                  .then(setSystem)
+                  .catch(() => {});
+              }}
+            />
+          ) : !painters.length && !loading ? (
             <div className="welcome-empty">
               <span className="empty-icon">
                 <Icon name="brush" size={40} />
@@ -684,8 +708,8 @@ export default function App() {
                     <span className="spinner" />
                     <div>
                       <strong>
-                        {running.kind === "train"
-                          ? `课程练习 ${running.training?.completed || 0}/${running.training?.total || 3} · `
+                        {running.training
+                          ? `${running.training.name} ${running.training.completed || 0}/${running.training.total} · `
                           : ""}
                         {stages[running.stage] || "画师正在工作"}
                       </strong>
@@ -945,6 +969,15 @@ export default function App() {
             </div>
             <div className="detail-copy">
               <DirectionBrief brief={detail.art_brief} />
+              {detail.experiment && (
+                <p className="learning-help">
+                  成长实验 · 第 {detail.experiment.pair + 1} 对 ·{" "}
+                  {detail.experiment.arm === "baseline"
+                    ? "无经验基线"
+                    : "使用学习经验"}
+                  。此作品不写入训练记忆，重评不会改写原实验结论。
+                </p>
+              )}
               {detail.learning && (
                 <div className="memory-reference">
                   课程练习 ·{" "}
@@ -1064,6 +1097,37 @@ export default function App() {
                   <p>{detail.plan.composition}</p>
                   <p>{detail.plan.palette}</p>
                   <div className="prompt-note">{detail.plan.prompt}</div>
+                  {detail.generation_constraints && (
+                    <>
+                      <h4>本轮保留的人物要求</h4>
+                      <ul>
+                        {Object.entries(
+                          detail.generation_constraints.protected_attributes,
+                        ).map(([key, value]) => (
+                          <li key={key}>
+                            {(
+                              {
+                                hair: "发色与发型",
+                                eyes: "眼睛",
+                                clothing: "服装",
+                                background: "背景",
+                              } as Record<string, string>
+                            )[key] || key}
+                            ：{value}
+                          </li>
+                        ))}
+                      </ul>
+                      <p>
+                        风格只补充绘画技巧；是否落实到画面仍以看图核对为准。
+                      </p>
+                      <details>
+                        <summary>查看排除的生图元素</summary>
+                        <div className="prompt-note">
+                          {detail.generation_constraints.negative_prompt}
+                        </div>
+                      </details>
+                    </>
+                  )}
                 </details>
               )}
               {detail.evaluation_history.filter((h) => h.critique).length >

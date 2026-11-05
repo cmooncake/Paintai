@@ -3,7 +3,9 @@ import { post, request } from "./api";
 import type { Creation, Job } from "./api";
 import "./learning.css";
 import { DirectionBrief, GoalEditor } from "./Direction";
+import StylePanel from "./StylePanel";
 import type { ArtBrief } from "./Direction";
+import GrowthPanel from "./GrowthPanel";
 
 type Round = {
   tasks?: string[];
@@ -73,7 +75,7 @@ export default function LearningPanel({
   const [busy, setBusy] = useState(false);
   const [editor, setEditor] = useState(false);
   const [draft, setDraft] = useState("");
-  const [tab, setTab] = useState<"course" | "memory">("course");
+  const [tab, setTab] = useState<"course" | "memory" | "growth">("course");
   const [refresh, setRefresh] = useState(0);
   const [instructions, setInstructions] = useState("");
   const [focus, setFocus] = useState("");
@@ -204,6 +206,12 @@ export default function LearningPanel({
   }
   return (
     <section className="learning-space">
+      <StylePanel
+        key={painterId}
+        painterId={painterId}
+        disabled={!!running || busy}
+        onJob={onJob}
+      />
       {progress && (
         <GoalEditor
           key={progress.growth_goal}
@@ -217,6 +225,12 @@ export default function LearningPanel({
         />
       )}
       <div className="learning-tabs">
+        <button
+          className={tab === "growth" ? "active" : ""}
+          onClick={() => setTab("growth")}
+        >
+          成长实验
+        </button>
         <button
           className={tab === "course" ? "active" : ""}
           onClick={() => setTab("course")}
@@ -247,7 +261,15 @@ export default function LearningPanel({
           </button>
         </div>
       )}
-      {!progress ? (
+      {tab === "growth" ? (
+        <GrowthPanel
+          painterId={painterId}
+          running={running}
+          ready={ready}
+          onJob={onJob}
+          onOpen={onOpen}
+        />
+      ) : !progress ? (
         <div className="loading-state">正在打开学习手记…</div>
       ) : tab === "course" ? (
         <>

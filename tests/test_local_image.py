@@ -38,6 +38,8 @@ def plan():
 
 def test_local_generator_uses_prompt_file_and_no_shell(local_config, plan, monkeypatch):
     raw = MockProvider().generate(plan)
+    local_config.local_image.clip_skip = 2
+    local_config.local_image.negative_prompt = "blurry, extra fingers"
 
     def run(command, **kwargs):
         assert kwargs["shell"] is False
@@ -45,6 +47,8 @@ def test_local_generator_uses_prompt_file_and_no_shell(local_config, plan, monke
         assert plan.prompt not in command
         assert Path(command[command.index("--prompt-file") + 1]).read_text("utf-8") == plan.prompt
         assert command[command.index("--backend") + 1] == "cpu"
+        assert command[command.index("--clip-skip") + 1] == "2"
+        assert command[command.index("--negative-prompt") + 1] == "blurry, extra fingers"
         Path(command[command.index("-o") + 1]).write_bytes(raw)
         return subprocess.CompletedProcess(command, 0)
 
@@ -75,6 +79,55 @@ def test_missing_runtime_does_not_start_process(local_config, plan, monkeypatch)
         LocalImageGenerator(local_config).generate(plan)
 
 
+def test_model_suffix_preserves_brief_and_is_visible_in_prepared_plan(local_config, plan):
+    plan.prompt = (
+        "An adult woman with chestnut brown bob hair and amber eyes, "
+        "wearing a plain ivory blouse, plain muted teal background."
+    )
+    original = plan.prompt
+    local_config.local_image.prompt_suffix = "masterpiece, high score, great score, absurdres"
+    generator = LocalImageGenerator(local_config)
+    prepared, constraints = generator.prepare(plan)
+    assert original in prepared.prompt
+    assert plan.prompt == original
+    assert constraints["protected_attributes"]["eyes"] == "amber eyes"
+    assert "green eyes" in constraints["negative_prompt"]
+    assert prepared.prompt.endswith(local_config.local_image.prompt_suffix)
+    assert constraints["model_prompt_suffix"] == local_config.local_image.prompt_suffix
+    repeated, _ = generator.prepare(prepared)
+    assert repeated.prompt.count(local_config.local_image.prompt_suffix) == 1
+
+
+def test_reference_image_is_passed_to_runtime_and_hash_checked(
+    local_config, plan, monkeypatch, tmp_path
+):
+    import hashlib
+
+    reference = tmp_path / "reference.png"
+    reference.write_bytes(MockProvider().generate(plan))
+    local_config.local_image.ip_adapter_path = tmp_path / "adapter.safetensors"
+    local_config.local_image.clip_vision_path = tmp_path / "vision.safetensors"
+    local_config.local_image.ip_adapter_path.touch()
+    local_config.local_image.clip_vision_path.touch()
+    generator = LocalImageGenerator(local_config)
+    generator.set_reference(
+        reference, hashlib.sha256(reference.read_bytes()).hexdigest(), 0.6, "ref-id"
+    )
+
+    def run(command, **kwargs):
+        assert command[command.index("--ip-adapter-image") + 1] == str(reference.resolve())
+        assert command[command.index("--ip-adapter-strength") + 1] == "0.6"
+        assert "--clip_vision" in command and "--ip-adapter" in command
+        Path(command[command.index("-o") + 1]).write_bytes(reference.read_bytes())
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    assert generator.generate(plan) == reference.read_bytes()
+    reference.write_bytes(b"changed")
+    with pytest.raises(ProviderError, match="changed"):
+        generator.generate(plan)
+
+
 def test_local_generator_config_validation(local_config):
     with pytest.raises(ValidationError, match="requires local_image"):
         ProviderConfig(provider="sd_cpp")
@@ -82,6 +135,37 @@ def test_local_generator_config_validation(local_config):
         Settings(planner=local_config)
     with pytest.raises(ValidationError):
         LocalImageConfig(executable=Path("sd"), model_path=Path("model"), width=513)
+
+
+def test_lora_runtime_loading_and_integrity(local_config, plan, monkeypatch, tmp_path):
+    import hashlib
+
+    adapter = tmp_path / "trial.safetensors"
+    adapter.write_bytes(b"test-adapter")
+    generator = LocalImageGenerator(local_config)
+    sha = hashlib.sha256(adapter.read_bytes()).hexdigest()
+    generator.set_lora(adapter, sha, 0.75)
+    original_prompt = plan.prompt
+
+    def run(command, **kwargs):
+        assert command[command.index("--lora-model-dir") + 1] == str(tmp_path.resolve())
+        prompt = Path(command[command.index("--prompt-file") + 1]).read_text("utf-8")
+        assert prompt == original_prompt + "\n<lora:trial:0.75>"
+        assert kwargs["shell"] is False
+        Path(command[command.index("-o") + 1]).write_bytes(MockProvider().generate(plan))
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    generator.generate(plan)
+    assert plan.prompt == original_prompt
+    adapter.write_bytes(b"changed")
+    with pytest.raises(ProviderError, match="changed"):
+        generator.generate(plan)
+    with pytest.raises(ProviderError, match="hash mismatch"):
+        generator.set_lora(adapter, sha)
+    for scale in [0, -1, 1.1, float("nan")]:
+        with pytest.raises(ProviderError, match="strength"):
+            generator.set_lora(adapter, sha, scale)
 
 
 def test_local_paths_relative_to_config(tmp_path):

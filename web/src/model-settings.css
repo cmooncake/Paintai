@@ -1,0 +1,92 @@
+.model-settings {
+  max-width: 900px;
+  margin: 0 auto 40px;
+}
+.model-intro h2 {
+  font-family: serif;
+  font-size: 30px;
+  margin: 0 0 12px;
+}
+.model-intro p,
+.model-help {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #70796b;
+}
+.model-card {
+  border: 1px solid #dce1d3;
+  border-radius: 18px;
+  background: #fffefb;
+  padding: 26px;
+  margin: 24px 0;
+}
+.model-card header {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.model-card header > span {
+  font-size: 24px;
+  color: #93a583;
+}
+.model-card header h3 {
+  margin: 0 0 6px;
+}
+.model-card header p {
+  margin: 0;
+  font-size: 13px;
+  color: #7c8375;
+}
+.model-settings label {
+  display: block;
+  font-size: 13px;
+  margin: 18px 0 7px;
+}
+.model-card input,
+#ark-shared-key,
+.model-card select,
+.model-card textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d5dccd;
+  border-radius: 9px;
+  background: white;
+  font: inherit;
+  color: inherit;
+}
+.model-card textarea {
+  min-height: 110px;
+  resize: vertical;
+  font-family: monospace;
+  font-size: 13px;
+}
+.model-card details {
+  margin: 18px 0;
+  font-size: 13px;
+}
+.model-card summary {
+  cursor: pointer;
+}
+.model-check-ok {
+  font-size: 13px;
+  color: #486839;
+  line-height: 1.7;
+}
+.model-check-error {
+  font-size: 13px;
+  color: #9a573f;
+  line-height: 1.7;
+}
+.model-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 18px 0;
+}
+@media (max-width: 650px) {
+  .model-card {
+    padding: 18px;
+  }
+}

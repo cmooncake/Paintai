@@ -1,0 +1,48 @@
+# SDXL preset: do not load the existing SD1.5 LoRA or IP-Adapter.
+# All roles use real local inference. Planner and critic share the vision server.
+data_dir = "../data"
+# Keep retrieval compact; set 0 for memory-off comparisons.
+memory_top_k = 1
+
+[planner]
+provider = "openai_compatible"
+base_url = "http://127.0.0.1:18081/v1"
+model = "paintai-vision"
+auth = "none"
+prompt_language = "en"
+structured_output = "json_schema"
+timeout_seconds = 600
+[planner.parameters]
+temperature = 0
+max_completion_tokens = 2048
+
+[generator]
+provider = "sd_cpp"
+model = "animagine-xl-4.0-opt"
+timeout_seconds = 3600
+[generator.local_image]
+executable = "../data/local-image/runtime/sd-cli.exe"
+model_path = "../data/local-image/animagine-xl-4.0-opt.safetensors"
+work_dir = "../data/local-image/runs"
+width = 1024
+height = 1024
+steps = 28
+cfg_scale = 5.0
+sampling_method = "euler_a"
+clip_skip = 2
+negative_prompt = "low quality, blurry, bad anatomy, malformed hands, extra fingers, extra limbs, text, watermark, photorealistic, 3d render"
+prompt_suffix = "masterpiece, high score, great score, absurdres"
+scheduler = "discrete"
+seed = 42
+threads = 8
+
+[critic]
+provider = "openai_compatible"
+base_url = "http://127.0.0.1:18081/v1"
+model = "paintai-vision"
+auth = "none"
+structured_output = "json_schema"
+timeout_seconds = 600
+[critic.parameters]
+temperature = 0.1
+max_completion_tokens = 2048

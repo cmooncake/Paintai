@@ -4,11 +4,11 @@
 
 | 角色 | 模型与运行方式 | 本机地址 |
 |---|---|---|
-| 构思 | Qwen2.5 0.5B / llama.cpp CPU | 127.0.0.1:18080 |
-| 生图 | SD-Turbo Q8_0 / stable-diffusion.cpp CPU | 每次生成启动本地进程 |
+| 构思 | Qwen3-VL 2B Instruct（纯文本请求，复用视觉服务） | 127.0.0.1:18081 |
+| 生图 | Counterfeit V3 fp16（二次元）/ stable-diffusion.cpp CPU | 每次生成启动本地进程 |
 | 评价 | Qwen3-VL 2B Instruct Q4_K_M + F16 视觉组件 / llama.cpp CPU | 127.0.0.1:18081 |
 
-评价器接收实际 PNG 的 base64 数据，直接查看像素，不使用生成提示词代替图片。请求包含主题与目标风格，不包含此前评分、创作轮次或 Compose 生成的提示词。评分仍是模型主观评价，不是经过校准的艺术质量标准。
+评价器首先接收实际 PNG 的 base64 数据，在不知道题目时描述像素；再把独立描述与题目、风格特点逐项核对。第二步只依据观察证据，不使用生成提示词、此前评分或实验组别。未满足和无法确认的要求会限制得分，并优先写入改进建议。评分仍是模型主观评价，不是经过校准的艺术质量标准。
 
 ## 准备与启动
 
@@ -16,6 +16,7 @@
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/setup-local-vision.py
+.\.venv\Scripts\python.exe scripts/setup-local-anime.py
 .\scripts\start-local-model.ps1
 .\scripts\start-local-vision.ps1
 ```
@@ -61,9 +62,9 @@
 
 视觉日志位于 `data/local-vision/server.stderr.log`。评价超时 600 秒，输出上限 2048 token；截断输出显式失败，不存入伪造分数。评价失败后图片会保留，修复服务后用 `evaluate` 重试。
 
-构思模型仅 0.5B，复杂中文曾出现结构化输出失败，首次验证建议使用上述英文主题。全本地链路跑通不代表课程学习或持续成长已得到验证。
+旧版 0.5B 构思曾丢失原题并把中文规则直接送入生图；完整本地配置现复用 2B 模型，保留原题，单独转换风格，并限制英文输出字符格式。0.5B 服务仍可通过模型设置选择。全本地链路跑通不代表课程学习或持续成长已得到验证。
 
-## 本机验收记录（2026-11-03）
+## 早期 SD-Turbo 本机验收记录（2026-11-03）
 
 - 新作品：`7355c47a7415446e9306816a830cb9a8`，画师 `local_art`；`status=complete`、`simulated=false`，三个 `simulation` 标记均为 false。
 - 图片：`data/painters/local_art/gallery/7355c47a7415446e9306816a830cb9a8.png`。其 SHA256 与评价记录一致。

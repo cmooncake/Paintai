@@ -10,6 +10,8 @@ from .models import Model
 
 
 class LocalImageConfig(Model):
+    ip_adapter_path: Path | None = None
+    clip_vision_path: Path | None = None
     executable: Path
     model_path: Path
     work_dir: Path = Path("data/local-image/runs")
@@ -20,10 +22,14 @@ class LocalImageConfig(Model):
     threads: int = Field(default=8, ge=1, le=64)
     seed: int = Field(default=42, ge=0, le=2147483647)
     sampling_method: Literal["euler", "euler_a", "lcm"] = "euler"
+    clip_skip: int = Field(default=1, ge=1, le=12)
+    negative_prompt: str = Field(default="", max_length=2000)
+    prompt_suffix: str = Field(default="", max_length=500)
     scheduler: Literal["discrete", "karras", "sgm_uniform"] = "discrete"
 
 
 class ProviderConfig(Model):
+    api_flavor: Literal["generic", "bailian", "seedream"] = "generic"
     provider: Literal["mock", "openai_compatible", "sd_cpp"] = "mock"
     base_url: str = "https://api.openai.com/v1"
     model: str = "mock-v1"
@@ -40,6 +46,11 @@ class ProviderConfig(Model):
     def validate_provider(self):
         allowed = {
             "temperature",
+            "max_tokens",
+            "enable_thinking",
+            "thinking",
+            "sequential_image_generation",
+            "watermark",
             "max_completion_tokens",
             "reasoning_effort",
             "size",
@@ -94,6 +105,10 @@ class Settings(Model):
 
     @model_validator(mode="after")
     def validate_roles(self):
+        if self.generator.api_flavor == "bailian" or any(
+            role.api_flavor == "seedream" for role in (self.planner, self.critic)
+        ):
+            raise ValueError("API flavor does not support this role")
         if self.planner.provider == "sd_cpp" or self.critic.provider == "sd_cpp":
             raise ValueError("sd_cpp is an image generator, not a planner or critic")
         return self
@@ -116,9 +131,15 @@ def load_settings(
             settings.data_dir = path.resolve().parent / settings.data_dir
         local = settings.generator.local_image
         if local:
-            for field in ("executable", "model_path", "work_dir"):
+            for field in (
+                "executable",
+                "model_path",
+                "work_dir",
+                "ip_adapter_path",
+                "clip_vision_path",
+            ):
                 value = getattr(local, field)
-                if not value.is_absolute():
+                if value is not None and not value.is_absolute():
                     setattr(local, field, (path.resolve().parent / value).resolve())
     override = data_dir or os.environ.get("PAINTAI_DATA_DIR")
     if override:

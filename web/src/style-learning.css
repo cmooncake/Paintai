@@ -1,0 +1,40 @@
+.style-learning input:not([type="checkbox"]),
+.style-learning select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #d5dccd;
+  border-radius: 8px;
+  background: white;
+  color: inherit;
+  margin: 8px 0 14px;
+}
+.style-learning label {
+  display: block;
+  margin-top: 12px;
+}
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  max-height: 360px;
+  overflow: auto;
+}
+.reference-grid img {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  background: #f1f0e9;
+  border-radius: 8px;
+}
+.reference-grid span {
+  display: block;
+}
+.style-traits {
+  border-top: 1px solid #d5dccd;
+  margin-top: 20px;
+  padding-top: 8px;
+}
+.style-traits textarea {
+  min-height: 80px;
+}

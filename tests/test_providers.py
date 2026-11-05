@@ -89,8 +89,17 @@ def test_critic_sends_actual_image_and_validates_scores(monkeypatch, painter, pl
 
     def handler(request):
         content = json.loads(request.content)["messages"][1]["content"]
-        assert base64.b64decode(content[1]["image_url"]["url"].split(",")[1]) == path.read_bytes()
-        result = expected.model_dump(exclude={"overall"})
+        if len(content) > 1:
+            assert (
+                base64.b64decode(content[1]["image_url"]["url"].split(",")[1]) == path.read_bytes()
+            )
+        body = json.loads(request.content)
+        if body["messages"][0]["content"].startswith("Describe only"):
+            result = {"description": "A simple test image."}
+        elif body["messages"][0]["content"].startswith("Compare ONE"):
+            result = {"evidence": "visible", "verdict": "met"}
+        else:
+            result = expected.model_dump(exclude={"overall"})
         return httpx.Response(200, json={"choices": [{"message": {"content": json.dumps(result)}}]})
 
     with httpx.Client(transport=httpx.MockTransport(handler)) as client:
@@ -148,20 +157,125 @@ def test_plan_schema_contains_no_optional_defaults():
     assert schema["additionalProperties"] is False
 
 
+@pytest.mark.parametrize("length,accepted", [(250, True), (4001, False)])
+def test_descriptive_plan_has_separate_bounded_acceptance(
+    monkeypatch, painter, plan, length, accepted
+):
+    data = plan.model_dump()
+    data["palette"] = "warm red and muted brown " * 8
+    data["prompt"] = "a" * length
+    with httpx.Client(
+        transport=httpx.MockTransport(
+            lambda r: httpx.Response(
+                200, json={"choices": [{"message": {"content": json.dumps(data)}}]}
+            )
+        )
+    ) as client:
+        provider = CompatibleProvider(config(monkeypatch), client)
+        if accepted:
+            assert provider.plan("山", painter).palette == data["palette"].strip()
+        else:
+            with pytest.raises(ProviderError):
+                provider.plan("山", painter)
+
+
+@pytest.mark.parametrize("all_ark", [False, True])
+def test_bailian_seedream_request_contract(monkeypatch, painter, plan, tmp_path, all_ark):
+    from paintai.model_presets import ark_all, bailian_seedream
+
+    monkeypatch.setenv("DASHSCOPE_API_KEY", "fixture-bailian")
+    monkeypatch.setenv("ARK_API_KEY", "fixture-ark")
+    preset = ark_all() if all_ark else bailian_seedream()
+    raw = MockProvider().generate(plan)
+    path = tmp_path / "image.png"
+    path.write_bytes(raw)
+    expected = MockProvider().evaluate(path, "山", painter, plan)
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        if request.method == "GET":
+            assert "authorization" not in request.headers
+            return httpx.Response(200, content=raw)
+        body = json.loads(request.content)
+        if request.url.path.endswith("/images/generations"):
+            assert request.url.path == "/api/v3/images/generations"
+            assert request.headers["authorization"] == "Bearer fixture-ark"
+            assert "n" not in body and body["stream"] is False
+            assert body["size"] == "2K" and body["watermark"] is True
+            assert body["sequential_image_generation"] == "disabled"
+            return httpx.Response(
+                200, json={"data": [{"url": "https://images.example.test/image.png"}]}
+            )
+        assert request.url.path == (
+            "/api/v3/chat/completions" if all_ark else "/compatible-mode/v1/chat/completions"
+        )
+        assert request.headers["authorization"] == (
+            "Bearer fixture-ark" if all_ark else "Bearer fixture-bailian"
+        )
+        if all_ark:
+            assert body["thinking"] == {"type": "disabled"}
+            assert "enable_thinking" not in body
+            assert body["model"] == "doubao-seed-2-0-lite-260428"
+        else:
+            assert body["enable_thinking"] is False
+        assert body["response_format"] == {"type": "json_object"}
+        assert "max_tokens" in body and "max_completion_tokens" not in body
+        if body["messages"][0]["content"].startswith(
+            ("Describe only", "You are an evidence auditor")
+        ):
+            content = body["messages"][1]["content"]
+            if len(content) > 1:
+                assert base64.b64decode(content[1]["image_url"]["url"].split(",")[1]) == raw
+            result = json.dumps(
+                {"description": "A simple test image."}
+                if body["messages"][0]["content"].startswith("Describe only")
+                else expected.model_dump(exclude={"overall"})
+            )
+        elif body["messages"][0]["content"].startswith("Compare ONE"):
+            result = json.dumps({"evidence": "visible", "verdict": "met"})
+        elif body["messages"][0]["content"].startswith("Select at most"):
+            result = json.dumps({"tags": ["soft shading"]})
+        elif body["messages"][0]["content"].startswith("Translate"):
+            result = json.dumps({"text": "mountain"})
+        else:
+            result = plan.model_dump_json()
+        return httpx.Response(200, json={"choices": [{"message": {"content": result}}]})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        providers = {
+            r: CompatibleProvider(ProviderConfig.model_validate(v), client)
+            for r, v in preset.items()
+        }
+        assert providers["planner"].plan("山", painter).prompt.startswith("mountain")
+        assert providers["generator"].generate(plan) == raw
+        assert providers["critic"].evaluate(path, "山", painter, plan).scores == expected.scores
+    assert len(calls) == 8
+
+
 def test_context_uses_rules_and_bounded_output_schema(monkeypatch, painter, plan):
     def handler(request):
         body = json.loads(request.content)
-        user = json.loads(body['messages'][1]['content'][0]['text'])
-        assert user['prior_experience'] == ['Use a clear focal point.']
-        assert 'old-private-id' not in body['messages'][1]['content'][0]['text']
-        schema = body['response_format']['json_schema']['schema']
-        assert schema['properties']['prompt']['maxLength'] == 450
-        assert schema['$defs']['CompactPerception']['properties']['constraints']['maxItems'] == 3
-        return httpx.Response(200, json={'choices':[{'message':{'content':plan.model_dump_json()}}]})
+        user = json.loads(body["messages"][1]["content"][0]["text"])
+        assert user["prior_experience"] == ["Use a clear focal point."]
+        assert "old-private-id" not in body["messages"][1]["content"][0]["text"]
+        schema = body["response_format"]["json_schema"]["schema"]
+        assert schema["properties"]["prompt"]["maxLength"] == 450
+        assert schema["$defs"]["CompactPerception"]["properties"]["constraints"]["maxItems"] == 3
+        return httpx.Response(
+            200, json={"choices": [{"message": {"content": plan.model_dump_json()}}]}
+        )
+
     with httpx.Client(transport=httpx.MockTransport(handler)) as client:
         provider = CompatibleProvider(config(monkeypatch), client)
-        assert provider.plan('山', painter, context=[{'entry_id':'old-private-id',
-                             'rules':['Use a clear focal point.']}]) == plan
+        assert (
+            provider.plan(
+                "山",
+                painter,
+                context=[{"entry_id": "old-private-id", "rules": ["Use a clear focal point."]}],
+            )
+            == plan
+        )
 
 
 def test_local_api_needs_no_secret(monkeypatch, painter, plan):

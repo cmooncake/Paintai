@@ -11,6 +11,17 @@ export interface Critique {
   improvements: string[];
 }
 export interface Creation {
+  generation_constraints?: {
+    version: string;
+    protected_attributes: Record<string, string>;
+    negative_prompt: string;
+  } | null;
+  experiment?: {
+    id: string;
+    pair: number;
+    arm: string;
+    seed: number | null;
+  } | null;
   art_brief?: import("./Direction").ArtBrief | null;
   learning?: {
     lesson_name?: string;

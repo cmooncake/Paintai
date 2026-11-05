@@ -2,6 +2,7 @@ import { useState } from "react";
 import { post } from "./api";
 
 export type ArtBrief = {
+  style_profile?: { id: string; name: string; traits: { guidance: string[] } };
   growth_goal?: string;
   stage_goals?: string[];
   skills?: string[];
@@ -16,6 +17,14 @@ export function DirectionBrief({ brief }: { brief?: ArtBrief | null }) {
   if (!brief) return null;
   return (
     <div className="direction-brief">
+      {brief.style_profile && (
+        <p>
+          <strong>参考风格：</strong>
+          {brief.style_profile.name} · 版本 {brief.style_profile.id.slice(0, 8)}
+          <br />
+          {brief.style_profile.traits.guidance.join("；")}
+        </p>
+      )}
       {brief.growth_goal && (
         <p>
           <strong>长期目标：</strong>

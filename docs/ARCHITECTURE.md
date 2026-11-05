@@ -9,7 +9,7 @@
 
 ## 一、核心概念
 
-**实施补充（2026-11-03）**：已实现 CLI 和独立的 React + TypeScript 网页画室。前端通过 FastAPI `/api/v1` 调用业务层，后台持久化队列执行构思 / 生图 / 视觉评价；模型、凭据和作品存储留在后端。M1 已加入 Spec 驱动课程、三图过关、进度展示，以及按主题 / 技能检索的本地创作记忆基线。运行与接口见 [WEB.md](WEB.md) 和 [LEARNING.md](LEARNING.md)。下文向量检索、经验蒸馏、成长实验和存档仍是后续路线。
+**实施补充（2026-11-03）**：已实现 CLI 和独立的 React + TypeScript 网页画室。前端通过 FastAPI `/api/v1` 调用业务层，后台持久化队列执行构思 / 生图 / 视觉评价；模型、凭据和作品存储留在后端。M1 已加入 Spec 驱动课程、三图过关、进度展示，以及按主题 / 技能检索的本地创作记忆基线。运行与接口见 [WEB.md](WEB.md) 和 [LEARNING.md](LEARNING.md)。M2a 已实现抽取式成对经验蒸馏和冻结经验成长对照，见 [GROWTH.md](GROWTH.md)。下文向量检索、完整 VED、成长泛化实验和存档仍是后续路线。
 
 Paintai 不是又一个「输入 prompt 输出图片」的图像生成器。它的核心差异在于：
 
@@ -542,7 +542,7 @@ Paintai/
 
 - [x] Memory store 基线（SQLite 结构化经验 + 本地文本 / 技能检索；向量检索待实现）
 
-- [ ] Experience distillation（创作后自动提取教训）
+- [x] Experience distillation 基线（同题 best-worst 证据对比与规则抽取；完整 VED 待实现）
 
 - [x] 检索经验并注入创作上下文（本地检索基线，可配置关闭）
 

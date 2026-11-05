@@ -1,5 +1,8 @@
-param([switch]$Offline, [switch]$StartModels)
+param([switch]$Offline, [switch]$StartModels, [switch]$Animagine)
 $ErrorActionPreference = 'Stop'
+if ($Offline -and $Animagine) {
+    throw 'Choose either Offline or Animagine mode.'
+}
 $root = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $root '.venv\Scripts\python.exe'
 $node = (Get-Command node.exe -ErrorAction Stop).Source
@@ -13,16 +16,20 @@ if ($StartModels -and !$Offline) {
 }
 $runDir = Join-Path $root 'data\web'
 New-Item -ItemType Directory -Path $runDir -Force | Out-Null
-$config = if ($Offline) { 'configs/offline.toml' } else { 'configs/local-full.toml' }
+$config = if ($Offline) { 'configs/offline.toml' } elseif ($Animagine) { 'configs/local-animagine.toml' } else { 'configs/local-full.toml' }
 function Start-OwnedService($name, $exe, $arguments, $port, $workingDir) {
     $recordPath = Join-Path $runDir "$name-process.json"
     if (Test-Path -LiteralPath $recordPath) {
         $saved = Get-Content -Raw -LiteralPath $recordPath | ConvertFrom-Json
         $existing = Get-Process -Id $saved.id -ErrorAction SilentlyContinue
-        if ($existing -and $existing.Path -eq $saved.path -and
+        if ($existing -and ($existing.Path -eq $saved.path -or $existing.Path -eq $exe) -and
             $existing.StartTime.ToUniversalTime().Ticks -eq $saved.startedTicks) {
             if ($name -eq 'api' -and $saved.config -ne $config) {
                 throw 'API uses another config. Run stop-web.ps1 before changing modes.'
+            }
+            if (!$saved.path) {
+                $saved.path = (Resolve-Path -LiteralPath $exe).Path
+                $saved | ConvertTo-Json | Set-Content -LiteralPath $recordPath
             }
             Write-Output "$name already running (PID $($existing.Id))."
             return
@@ -33,7 +40,7 @@ function Start-OwnedService($name, $exe, $arguments, $port, $workingDir) {
     $process = Start-Process -FilePath $exe -ArgumentList $arguments -WorkingDirectory $workingDir `
         -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $runDir "$name.stdout.log") `
         -RedirectStandardError (Join-Path $runDir "$name.stderr.log")
-    @{ id=$process.Id; path=$process.Path; startedTicks=$process.StartTime.ToUniversalTime().Ticks; config=$config } |
+    @{ id=$process.Id; path=(Resolve-Path -LiteralPath $exe).Path; startedTicks=$process.StartTime.ToUniversalTime().Ticks; config=$config } |
         ConvertTo-Json | Set-Content -LiteralPath $recordPath
 }
 Start-OwnedService 'api' $python @('-m','paintai.api','--config',$config) 8000 $root
