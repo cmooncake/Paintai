@@ -100,7 +100,7 @@ def main():
         "images": {"baseline": {**baseline, "path": str((args.output / "baseline.png").resolve())}},
         "limitations": [
             "Single seed, development validation, not stable improvement evidence.",
-            "Training at 512, inference at 1024; CPU pilot only.",
+            f"Training at {trained['resolution']}, inference at {config.local_image.width}; CPU pilot only.",
         ],
     }
     report = args.output / "comparison.json"

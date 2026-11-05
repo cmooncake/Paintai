@@ -8,6 +8,41 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.parametrize("values", [[0], [41], [20, 20]])
+def test_invalid_checkpoint_schedule_rejected_before_loading(monkeypatch, tmp_path, values):
+    with pytest.raises(SystemExit) as error:
+        run_trainer(
+            monkeypatch,
+            tmp_path,
+            {"images": []},
+            extra=["--steps", "40", "--checkpoints", *map(str, values)],
+        )
+    assert error.value.code == 2
+    assert not (tmp_path / "output").exists()
+
+
+def test_checkpoint_schedule_sorted_without_changing_budget():
+    import runpy
+
+    schedule = runpy.run_path(str(Path(__file__).parents[1] / "scripts/train-style-lora.py"))[
+        "checkpoint_steps"
+    ]
+    assert schedule([160, 40, 80], 160) == [40, 80, 160]
+
+
+def test_center_crop_geometry_for_sdxl_time_conditioning():
+    import runpy
+
+    fit = runpy.run_path(str(Path(__file__).parents[1] / "scripts/train-style-lora.py"))[
+        "fit_geometry"
+    ]
+    assert fit((800, 1200), (512, 512)) == ((512, 768), (0, 128))
+    assert fit((1200, 800), (512, 512)) == ((768, 512), (128, 0))
+    assert fit((640, 640), (768, 768)) == ((768, 768), (0, 0))
+    with pytest.raises(ValueError, match="positive"):
+        fit((0, 640), (768, 768))
+
+
 def run_trainer(monkeypatch, tmp_path, manifest, parent=None, extra=()):
     spec = importlib.util.spec_from_file_location(
         "train_style_lora", Path(__file__).parents[1] / "scripts/train-style-lora.py"

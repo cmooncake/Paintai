@@ -111,3 +111,17 @@ HTTP 集成测试覆盖离线完整闭环、图片读取与画师隔离、重复
 M2a 新增「学习 → 成长实验」：同题成对蒸馏与冻结经验有/无对照。实验作品不会写回记忆或推进课程；详见 [GROWTH.md](GROWTH.md)。
 
 左侧新增「模型设置」：独立切换构思、生图和视觉评价服务，支持连接检查、Windows 加密保存密钥、持久化偏好及恢复启动配置。详见 [MODEL_SETTINGS.md](MODEL_SETTINGS.md)。
+
+## LoRA 实验归档
+
+选择画师后，点击左侧「LoRA 实验」，可查看已归档的检查点图片、参考作品、发色与服装约束、画风分项结论。训练完成、技术核验通过和画风验收通过分别展示；验证去噪误差不代表画风相似度。当前进度是已完成实验的归档进度，不是后台训练的实时监控。
+
+将连续检查点实验发布到网页的数据目录：
+
+```powershell
+.\.venv\Scripts\python.exe scripts/publish-lora-report.py --review data/lora/lillie-continuous-review
+```
+
+脚本读取该实验的计划、评价及技术验收报告，校验训练完成状态和图片哈希，再按画师归档原图。后续同结构实验需要显式运行此命令，可用 `--id` 指定新实验编号；数据保存在 `data/painters/<画师编号>/lora_reports/`，刷新结果即可看到，不需要重新生图。归档数据和图片不进入 Git。
+
+只读接口为 `GET /api/v1/painters/{id}/lora-reports` 和 `GET /api/v1/painters/{id}/lora-reports/{report_id}/images/{image_id}`。图片必须属于该画师的报告，接口不接受任意文件路径。

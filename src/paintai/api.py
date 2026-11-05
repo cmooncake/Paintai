@@ -21,6 +21,7 @@ from .evolution import Evolution
 from .experiments import ExperimentRequest
 from .jobs import Jobs, QueueConflict, Worker
 from .learning import LearningError
+from .lora_reports import LoraReports
 from .memory import Memory
 from .model_presets import ark_all, bailian_seedream
 from .model_settings import ModelEdit, ModelRevision, ModelSettings, RoleEdit
@@ -373,6 +374,16 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
     @app.get("/api/v1/painters/{painter_id}/experiments")
     def experiments(painter_id: str):
         return {"items": jobs.experiments.list(painter_id)}
+
+    @app.get("/api/v1/painters/{painter_id}/lora-reports")
+    def lora_reports(painter_id: str):
+        return {"items": LoraReports(store).list(painter_id)}
+
+    @app.get("/api/v1/painters/{painter_id}/lora-reports/{report_id}/images/{image_id}")
+    def lora_report_image(painter_id: str, report_id: str, image_id: str):
+        return FileResponse(
+            LoraReports(store).image(painter_id, report_id, image_id), media_type="image/png"
+        )
 
     @app.post("/api/v1/painters/{painter_id}/experiments/preview")
     def preview_experiment(painter_id: str, body: ExperimentRequest):

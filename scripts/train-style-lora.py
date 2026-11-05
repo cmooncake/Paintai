@@ -5,12 +5,14 @@ Outputs actual trained attention adapters, provenance, losses and a reload check
 """
 
 import argparse
+import copy
 import hashlib
 import json
 import math
 import os
 import platform
 import time
+from contextlib import contextmanager
 from importlib.metadata import version
 from pathlib import Path
 
@@ -39,6 +41,38 @@ def region_weights(regions, width, height):
     return grid
 
 
+def fit_geometry(source_size, target_size):
+    """Return actual resized size and (left, top) center-crop offsets for SDXL."""
+    width, height = source_size
+    target_width, target_height = target_size
+    if min(width, height, target_width, target_height) <= 0:
+        raise ValueError("Image dimensions must be positive")
+    scale = max(target_width / width, target_height / height)
+    resized = (max(target_width, round(width * scale)), max(target_height, round(height * scale)))
+    offsets = ((resized[0] - target_width) // 2, (resized[1] - target_height) // 2)
+    return resized, offsets
+
+
+def checkpoint_steps(values, total):
+    if any(step < 1 or step > total for step in values) or len(set(values)) != len(values):
+        raise ValueError("Checkpoint steps must be unique and within the training budget")
+    return sorted(values)
+
+
+@contextmanager
+def checkpoint_guard(torch, module, optimizer):
+    """Evaluation/export must not advance RNG or replace optimizer-owned parameters."""
+    was_training = module.training
+    parameters = [id(p) for group in optimizer.param_groups for p in group["params"]]
+    try:
+        with torch.random.fork_rng(devices=[]):
+            yield
+    finally:
+        module.train(was_training)
+        if parameters != [id(p) for p in module.parameters() if p.requires_grad]:
+            raise ValueError("Checkpoint replaced optimizer-owned parameters")
+
+
 def main():
     source_bytes = Path(__file__).read_bytes()
     parser = argparse.ArgumentParser(description=__doc__)
@@ -46,15 +80,24 @@ def main():
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--steps", type=int, default=12)
-    parser.add_argument("--resolution", type=int, choices=[256, 384, 512], default=256)
+    parser.add_argument("--resolution", type=int, choices=[256, 384, 512, 768, 1024], default=256)
     parser.add_argument("--threads", type=int, default=6)
     parser.add_argument("--resume-training", type=Path)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
+    parser.add_argument("--checkpoints", type=int, nargs="*", default=[])
     args = parser.parse_args()
     if not 1 <= args.steps <= 1000 or not 1 <= args.threads <= 16:
         parser.error("CPU run requires 1..1000 steps and 1..16 threads")
     if not math.isfinite(args.learning_rate) or not 0 < args.learning_rate <= 0.001:
         parser.error("Learning rate must be finite and in (0, 0.001]")
+    try:
+        milestones = checkpoint_steps(args.checkpoints, args.steps)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if milestones and args.resume_training:
+        parser.error(
+            "Checkpoint experiments require a fresh continuous run, not an adapter warm start"
+        )
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     if manifest.get("architecture", "sd15") != args.architecture:
         raise ValueError("Manifest and requested architecture differ")
@@ -122,6 +165,8 @@ def main():
         "resume_training": str(args.resume_training) if parent else None,
         "parent_steps": parent["steps"] + parent.get("parent_steps", 0) if parent else 0,
         "optimizer": "fresh AdamW; adapter warm start only",
+        "checkpoint_steps": milestones,
+        "checkpoints": [],
     }
 
     def save_report():
@@ -140,7 +185,7 @@ def main():
         from huggingface_hub import snapshot_download
         from peft import LoraConfig
         from peft.utils import get_peft_model_state_dict, set_peft_model_state_dict
-        from PIL import Image, ImageOps
+        from PIL import Image
         from safetensors.torch import load_file, save_file
 
         torch.set_num_threads(args.threads)
@@ -224,7 +269,16 @@ def main():
                             size = (round(args.resolution * 2 / 3 / 64) * 64, args.resolution)
                         elif ratio > 1.18:
                             size = (args.resolution, round(args.resolution * 2 / 3 / 64) * 64)
-                    im = ImageOps.fit(crop, size)
+                    resized, (left, top) = fit_geometry(crop.size, size)
+                    im = crop.resize(resized, Image.Resampling.BICUBIC).crop(
+                        (left, top, left + size[0], top + size[1])
+                    )
+                    report.setdefault("preprocessing", {})[item["id"]] = {
+                        "source_size": list(crop.size),
+                        "resized_size": list(resized),
+                        "crop_left_top": [left, top],
+                        "target_size": list(size),
+                    }
                     pixels = (
                         torch.from_numpy(np.array(im).copy()).permute(2, 0, 1).float()[None] / 127.5
                         - 1
@@ -274,7 +328,8 @@ def main():
                     added = {
                         "text_embeds": encoded_two.text_embeds,
                         "time_ids": torch.tensor(
-                            [[crop.height, crop.width, 0, 0, size[1], size[0]]], dtype=hidden.dtype
+                            [[crop.height, crop.width, top, left, size[1], size[0]]],
+                            dtype=hidden.dtype,
                         ),
                     }
                     if hidden.shape != (1, 77, 2048) or added["text_embeds"].shape != (1, 1280):
@@ -339,6 +394,106 @@ def main():
             report["validation_before"] = evaluate_validation()
             save_report()
         optimizer = torch.optim.AdamW(trainable, lr=args.learning_rate)
+        if milestones:
+            report["optimizer"] = "one continuous AdamW instance; checkpoint export preserves state"
+            torch.save(
+                {"training": cache, "validation": validation_cache, "masks": training_masks},
+                args.output / "cached-features.pt",
+            )
+            report["cached_features_sha256"] = digest(args.output / "cached-features.pt")
+
+        def export_checkpoint(completed, order):
+            folder = args.output / f"checkpoint-{completed:04d}"
+            folder.mkdir(exist_ok=False)
+            (folder / "training-source.py").write_bytes(source_bytes)
+            snapshot = copy.deepcopy(report)
+            snapshot.update(
+                status="saving",
+                steps=completed,
+                planned_steps=args.steps,
+                continuous_run=str(args.output.resolve()),
+            )
+            rng = torch.get_rng_state().clone()
+            optimizer_steps = sorted({int(s["step"].item()) for s in optimizer.state.values()})
+            if optimizer_steps != [completed]:
+                raise ValueError("Optimizer steps differ from continuous update count")
+            with checkpoint_guard(torch, pipe.unet, optimizer):
+                if validation:
+                    snapshot["validation_after"] = evaluate_validation()
+                state = {
+                    k: v.detach().cpu().contiguous().clone()
+                    for k, v in get_peft_model_state_dict(pipe.unet).items()
+                }
+                snapshot["max_parameter_change"] = max(
+                    (state[k] - initial[k]).abs().max().item() for k in state
+                )
+                save_file(state, str(folder / "adapter-peft.safetensors"))
+                pipeline_class.save_lora_weights(
+                    folder,
+                    unet_lora_layers=convert_state_dict_to_diffusers(state),
+                    safe_serialization=True,
+                )
+                kohya = convert_state_dict_to_kohya({"unet." + k: v for k, v in state.items()})
+                save_file(
+                    kohya,
+                    str(folder / "xiaoxiao-smoke.safetensors"),
+                    metadata={
+                        "ss_network_module": "networks.lora",
+                        "ss_network_dim": "4",
+                        "ss_network_alpha": "4",
+                        "paintai_purpose": "Continuous CPU pilot checkpoint",
+                    },
+                )
+                pipe.unet.eval()
+                with torch.no_grad():
+                    probe, hidden, added = cache[0]
+                    t = torch.tensor([500])
+                    before = pipe.unet(probe, t, hidden, added_cond_kwargs=added).sample
+                    # Copy into existing Parameters: never delete/recreate an adapter mid-run.
+                    set_peft_model_state_dict(
+                        pipe.unet, load_file(str(folder / "adapter-peft.safetensors"))
+                    )
+                    after = pipe.unet(probe, t, hidden, added_cond_kwargs=added).sample
+                    snapshot["reload_max_error"] = (before - after).abs().max().item()
+                    pipe.unet.disable_adapters()
+                    baseline = pipe.unet(probe, t, hidden, added_cond_kwargs=added).sample
+                    snapshot["adapter_prediction_mean_delta"] = (
+                        (after - baseline).abs().mean().item()
+                    )
+                    pipe.unet.enable_adapters()
+                if snapshot["reload_max_error"] > 1e-5 or snapshot["max_parameter_change"] <= 0:
+                    raise ValueError("Checkpoint weight validation failed")
+            if not torch.equal(rng, torch.get_rng_state()):
+                raise ValueError("Checkpoint changed training RNG")
+            torch.save(
+                {
+                    "optimizer": optimizer.state_dict(),
+                    "torch_rng_state": rng,
+                    "step": completed,
+                    "order": order,
+                    "cached_features_sha256": report["cached_features_sha256"],
+                },
+                folder / "training-state.pt",
+            )
+            snapshot["optimizer_step_counts"] = optimizer_steps
+            snapshot["rng_preserved"] = True
+            snapshot["training_state_sha256"] = digest(folder / "training-state.pt")
+            snapshot["artifacts"] = {p.name: digest(p) for p in folder.glob("*.safetensors")}
+            snapshot["status"] = "complete"
+            (folder / "report.json").write_text(
+                json.dumps(snapshot, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            report["checkpoints"].append(
+                {
+                    "step": completed,
+                    "path": str(folder.resolve()),
+                    "optimizer_steps": optimizer_steps,
+                    "rng_preserved": True,
+                }
+            )
+            save_report()
+            print(f"Verified continuous checkpoint: {completed}", flush=True)
+
         pipe.unet.train()
         report["status"] = "training"
         save_report()
@@ -377,6 +532,8 @@ def main():
             report["losses"].append(row)
             save_report()
             print(json.dumps(row), flush=True)
+            if step + 1 in milestones:
+                export_checkpoint(step + 1, order)
         if validation:
             report["validation_after"] = evaluate_validation()
         state = {

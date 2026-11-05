@@ -172,3 +172,123 @@ data/lora-env/Scripts/python.exe scripts/train-style-lora.py --architecture sdxl
 比较脚本已修复 CFG `5` 与 `5.0` 字符串误判；本轮原错误报告保存在 `comparison-original-failure.json`，
 修正后通过 `--verify-existing` 校验原图和原调用，没有重新生图或挑选样本。
 相关架构、训练数据隔离与 CFG 比较回归测试共 13 项通过。
+
+## 莉莉艾固定人物：768 多视图诊断实验
+
+上一轮权重确实更新、重载且在原生推理中生效，因此不能把提升弱归因于“没有加载 LoRA”。
+更直接的限制是：40 次更新、10 张原作，512 肖像中的虹膜只占少量像素；眼部矩形加权会同时学习颜色和轮廓，
+不是虹膜层次或画风相似度损失。rank 4、注意力层适配与内容标签也可能限制表达能力，但本轮没有单独验证这些假设。
+
+新清单 `data/lora/animagine-detail/manifest.json` 保持同 10 张训练原作和 4 张开发验证作品，
+每张训练图提供原肖像和脸部近景两个视图，改为 768 分辨率；20 个视图不等于 20 张独立作品。
+从底模重新初始化，仍为 40 步、rank 4、学习率 5e-5、种子 42、眼部权重 2。
+每视图更新两次，即每原作四次，与旧方案相同；近景标注只描述可见内容。
+训练没有使用莉莉艾图片。原肖像保留整体光影与衣服线条，近景提高虹膜与面部线条的空间占比。
+部分近景原始边长只有 256–350 像素，放大不能恢复不存在的细节；这仍是数据质量上限。
+
+本轮同时改变分辨率与视图组成，是组合方案试验，不能单独归因于其中一项。
+预处理记录实际缩放尺寸和裁切偏移，并把真实偏移传给 SDXL 尺寸条件。
+不同分辨率的去噪 MSE 不直接横比，更不能换算成画风相似度。
+
+`configs/lillie-benchmark.json` 在看新结果前固定人物、正负提示词、生成参数和验收项。
+固定莉莉艾初始造型：长浅金发、绿眼睛、白宽檐帽、白色无袖高领连衣裙、纯浅青背景。
+以同一底模、原生运行程序、1024×1024、28 步、CFG 5、Euler a、CLIP skip 2、seed 42，生成三组：
+无适配器、旧 512/40 步适配器、新 768/40 步适配器。两组 LoRA 强度均为 1，没有参考图适配器。
+新旧 LoRA 都与这张新基线比较，不拿历史棕发人物的图片做莉莉艾的基线。
+人物属性先验收，再分项看细彩线、虹膜层次、柔和光影；亮度提高或低对比度不自动算画风改善。
+单人物单种子只提供诊断证据，四张开发验证图也不是从未参与决策的最终测试集。
+
+```powershell
+data/lora-env/Scripts/python.exe scripts/train-style-lora.py --architecture sdxl --manifest data/lora/animagine-detail/manifest.json --output data/lora/animagine-detail-40 --steps 40 --resolution 768 --threads 6 --learning-rate 0.00005
+.venv/Scripts/python.exe scripts/render-sdxl-control.py --spec configs/lillie-benchmark.json --output data/lora/lillie-base
+.venv/Scripts/python.exe scripts/compare-sdxl-lora.py --training data/lora/animagine-pilot-40 --baseline data/lora/lillie-base --output data/lora/lillie-prior-40
+.venv/Scripts/python.exe scripts/compare-sdxl-lora.py --training data/lora/animagine-detail-40 --baseline data/lora/lillie-base --output data/lora/lillie-detail-40
+```
+
+重跑必须指定新输出目录。训练与对照完成后另行记录验收，不能以训练损失下降提前宣称学会画风。
+
+### 莉莉艾对照结果（2026-11-05）
+
+768 训练完成 40 步，更新阶段耗时 714.44 秒，20 个视图各更新两次；最大参数变化 0.0016253，
+重载最大误差 0，适配器开关的探针预测平均差异 0.0048035（仅验证生效，不是质量指标）。
+本轮同分辨率开发验证 MSE 从 0.1848487 小幅降到 0.1835196，不与旧 512 实验的 MSE 横比。
+固定提示词在两个本地 CLIP tokenizer 下均为 75 tokens，没有超过 77 上限。
+
+三组图片均完成，基线约 1056.5 秒；旧、新 LoRA 在训练结束后并行生成，分别约 1404.97、1411.68 秒。
+两组均实际应用 1680/1680 个 UNet LoRA 张量，24 项最终技术核验通过；后端回归测试 121 项通过。
+顺序队列原先计划的新版生成在并行结果已存在后被目录保护阻止，没有重复生图或覆盖已验证结果。
+
+**画风验收未通过。** 新版眼睛下部色阶和反光有小变化，仍是偏动画的简单分层；
+没有出现参考作品那种细碎、多层的通透结构。帽子、发丝、脸和衣服仍以黑色轮廓及大块硬边阴影为主，
+局部渐变和鼻部亮块不足以构成细彩线、柔和光影的整体改善。新版头发阴影比底模和旧版更偏灰绿。
+三组都能辨认莉莉艾，绿眼、白帽、无袖白裙主体保留，但预设的高领、完整帽檐、浅色纯背景没有全部满足。
+因此不能认定新方案明显胜过底模或旧 LoRA，也没有将其设为默认。
+
+这轮排除了“没加载权重”和“本轮提示词被截断”，但没有证明分辨率/近景裁图是原先提升弱的唯一原因。
+训练预算仍很小，原图局部清晰度有限，眼部去噪加权也不是画风评价目标。
+角色标签与底模可能带来动画平涂先验，这是观察后的假设，未做移除标签的独立对照，不能当作已证实因果。
+后续更有判别力的试验是固定本轮其他条件，比较连续训练的 40/80/160 步检查点，再单独检验数据质量或 rank。
+单人物、单种子的结果不能代表稳定泛化效果。
+
+完整本地对照报告：`data/lora/lillie-review/index.html`；整图 `comparison.png`、同坐标眼部放大图 `eye-detail.png`，
+技术核验 `technical-acceptance.json`、分项观察 `assessment.json`。
+原图分别在 `data/lora/lillie-base/baseline.png`、`data/lora/lillie-prior-40/lora.png`、`data/lora/lillie-detail-40/lora.png`。
+新版权重在 `data/lora/animagine-detail-40/xiaoxiao-smoke.safetensors`。
+
+## 固定方案的连续 40 / 80 / 160 步检查点
+
+`--checkpoints 40 80 160 --steps 160` 在一次连续训练中导出检查点，始终使用同一个 AdamW 实例。
+导出时不删除或重建适配器参数，保存前后检查参数对象身份、优化器步数和随机状态；验证/探针运行于隔离的 RNG 上下文，
+结束后恢复训练模式。每个检查点保存 PEFT、Diffusers、原生推理权重、独立报告，以及含 AdamW 动量、随机状态、
+当前样本顺序的 `training-state.pt`；共享缓存保存在训练目录的 `cached-features.pt`。
+现有 `--resume-training` 仍只是重启优化器的权重热启动，不能和连续检查点实验混用。
+这些状态文件用于留存与审计，当前 CLI 尚未提供完整训练状态的中断恢复入口。
+
+本轮从第 0 步重跑，因为上一轮没有保存优化器；保持同一数据清单、768、rank 4、学习率 5e-5、seed 42、6 线程。
+源数据清单中的原 40 步试训预算由本次明确的 `--steps 160` 覆盖，图片、裁图、标注、区域权重与验证集不变。
+检查点分别覆盖每个视图 2 / 4 / 8 次更新，即每张独立原作 4 / 8 / 16 次。
+固定实验与验收条件在 `data/lora/lillie-continuous-review/plan.json`，仍使用 `configs/lillie-benchmark.json`。
+发色、绿眼、白裙主体、领口、帽檐和背景逐项记录，区分基线已有缺陷与继续训练新引入的退步。
+明显的发色或服装漂移不能以“风格更强”抵消。
+
+```powershell
+data/lora-env/Scripts/python.exe scripts/train-style-lora.py --architecture sdxl --manifest data/lora/animagine-detail/manifest.json --output data/lora/animagine-continuous-160-r1 --steps 160 --resolution 768 --threads 6 --learning-rate 0.00005 --checkpoints 40 80 160
+.venv/Scripts/python.exe scripts/compare-sdxl-lora.py --training data/lora/animagine-continuous-160-r1/checkpoint-0080 --baseline data/lora/lillie-base --output data/lora/lillie-continuous-80
+.venv/Scripts/python.exe scripts/compare-sdxl-lora.py --training data/lora/animagine-continuous-160-r1/checkpoint-0160 --baseline data/lora/lillie-base --output data/lora/lillie-continuous-160
+data/lora-env/Scripts/python.exe tests/test_lora_checkpoint_state.py
+```
+
+第 40 步与上一轮权重逐张量核对；只有原生权重数值完全相同且原图的运行条件验证通过，才允许复用上一轮同题同种子图片，
+否则必须重新生成并保留新旧报告。复用时明确记录原始推理来源，不把已有图伪装成新生成。
+首次启动在模型加载阶段发生 `c10.dll` 原生访问异常，没有参数更新；失败报告保留在
+`data/lora/animagine-continuous-160/report.json`，相同配置重试目录为 `animagine-continuous-160-r1`。
+
+### 连续检查点结果（2026-11-05）
+
+160 次更新全部完成，最后一条更新记录耗时 3868.36 秒（包含 40、80 步中途验证/导出的时间）。
+40 / 80 / 160 步状态文件中的 AdamW 步数分别为 40 / 80 / 160，每个视图分别更新 2 / 4 / 8 次，
+每原作分别更新 4 / 8 / 16 次；三次重载误差均为 0，保存检查点未改变后续随机状态。
+最大参数变化分别为 0.0016253 / 0.0035811 / 0.0072556，验证去噪 MSE 为
+0.18351957 / 0.18284769 / 0.18211796；未训练底模为 0.18484868。
+这些是训练与去噪指标，不是画风相似度。
+
+第 40 步与上轮原生权重逐张量字节一致，原图的实际提示词、负向约束、采样参数、底模及运行程序哈希校验通过，
+因此复用原图；文件元数据不同不影响已核对的数值，复用证明记录两份文件哈希和原始生成来源。
+80、160 步重新生成，各自原生日志确认加载了相应检查点全部 1680/1680 个 UNet LoRA 张量。
+最终 63 项技术核验通过；125 项应用回归测试通过，应用环境跳过的 2 项 PyTorch 状态测试已在训练环境单独通过。
+
+**画风与属性联合验收仍未通过。** 80、160 步仍保留黑色轮廓、大块硬边平涂和简单虹膜分区，
+没有随步数增加出现参考作品的细彩线、多层通透虹膜及柔和光影。
+40、80、160 步发色均存在灰绿/灰橄榄倾向，增加训练没有恢复明确浅金发；不主张偏色严格单调加重。
+白裙、蓝色领口主体总体保持，没有完全换装；80、160 步袖窿与侧边轮廓有所变化。
+高领、完整帽檐和浅色纯背景的偏差在基线中已经存在，不能全部归因于新增训练。
+没有把 160 步设为默认升级，也没有挑选种子、修改提示词或修饰图片来改善展示结果。
+
+本轮支持的结论仅是：在当前方案、莉莉艾题目与 seed 42 下，增加到 160 步没有带来合格的画风改善。
+不能由此断言更多步数永远无效，也不能单独归因于 rank、底模或角色标签。
+训练样本中的冷色头发内容与风格耦合是后续可独立检验的假设；去噪 MSE 的小幅下降不足以证实视觉进步。
+
+本地报告：`data/lora/lillie-continuous-review/index.html`；整图 `comparison.png`、同坐标眼部放大 `eye-detail.png`，
+评价记录 `assessment.json`、核验记录 `technical-acceptance.json`、40 步复用证明 `40-reuse-proof.json`。
+三个检查点位于 `data/lora/animagine-continuous-160-r1/checkpoint-0040`、`checkpoint-0080`、`checkpoint-0160`。
+对应对照图在 `data/lora/lillie-continuous-40`、`lillie-continuous-80`、`lillie-continuous-160`。

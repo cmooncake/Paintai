@@ -1,0 +1,40 @@
+{
+  "topic": "莉莉艾（宝可梦太阳／月亮初始造型）人物肖像：长浅金发、绿眼睛、完整白色宽檐帽、白色无袖高领连衣裙、纯浅青背景。",
+  "character": {
+    "name": "Lillie / 莉莉艾",
+    "source": "Pokémon Sun and Moon",
+    "hair": "long pale blonde hair",
+    "eyes": "green",
+    "outfit": "original white wide-brim hat and white sleeveless high-neck dress",
+    "composition": "one character, upper body, hat in frame, gentle smile",
+    "background": "plain pale teal"
+  },
+  "config": "configs/local-animagine.toml",
+  "model_sha256": "6327eca98bfb6538dd7a4edce22484a1bbc57a8cff6b11d075d40da1afb847ac",
+  "prompt": "1girl, solo, lillie \\(pokemon\\), pokemon, safe, upper body, long blonde hair, green eyes, white sun hat, hat fully visible, white dress, sleeveless, high neckline, gentle smile, plain pale teal background, fine colored lineart, layered irises, soft lighting, masterpiece, high score, great score, absurdres",
+  "negative_prompt": "low quality, blurry, bad anatomy, extra limbs, multiple girls, collage, character sheet, text, watermark, photorealistic, 3d render, thick outlines, harsh shadows, nsfw, nude, cleavage, lingerie, swimsuit",
+  "sampling": {
+    "width": 1024,
+    "height": 1024,
+    "steps": 28,
+    "cfg_scale": 5.0,
+    "sampling_method": "euler_a",
+    "scheduler": "discrete",
+    "seed": 42,
+    "threads": 8,
+    "clip_skip": 2
+  },
+  "assessment": [
+    "Character constraints are a prerequisite: hair, eyes, hat, dress, background.",
+    "Compare thin colored contour lines and internal hair/clothing lines against held-out references.",
+    "Compare iris tonal depth, layered reflections and highlight placement, not brightness alone.",
+    "Compare cheek, neck and fabric shadow transitions; washed-out contrast is not automatically softer light.",
+    "Report regressions and ties; no style similarity percentage without a calibrated metric."
+  ],
+  "limitations": [
+    "One fixed character and seed: diagnostic evidence only, not stable improvement.",
+    "Existing development references have informed previous decisions; not a pristine test set.",
+    "The new training combines 768 resolution and portrait/face views; this is not a single-variable ablation.",
+    "Compare base, prior 512 LoRA and new 768 LoRA with identical prompts and native sampling settings."
+  ]
+}

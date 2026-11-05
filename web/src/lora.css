@@ -1,0 +1,142 @@
+.lora-panel {
+  color: #263c3b;
+  line-height: 1.7;
+}
+.lora-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.lora-panel button {
+  border: 1px solid #c5d2cc;
+  padding: 9px 16px;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+.lora-report,
+.lora-empty {
+  margin-top: 24px;
+  padding: 24px;
+  background: #fffefa;
+  border: 1px solid #e2e7df;
+  border-radius: 16px;
+}
+.lora-report h3 {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+.lora-report h4 {
+  margin: 26px 0 12px;
+  font-size: 17px;
+}
+.lora-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lora-badges span {
+  border-radius: 20px;
+  padding: 5px 12px;
+  background: #edf2eb;
+  font-size: 13px;
+}
+.lora-badges .lora-caution {
+  background: #fff0d8;
+  color: #80521c;
+}
+.lora-badges .lora-pass {
+  background: #dfeee3;
+  color: #275b36;
+}
+.lora-report progress {
+  width: 100%;
+  height: 8px;
+  accent-color: #557b67;
+  margin-top: 14px;
+}
+.lora-conclusion {
+  padding: 16px;
+  background: #f5f0e5;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.lora-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 24px;
+}
+.lora-panel figure {
+  margin: 0;
+  min-width: 0;
+}
+.lora-grid figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+}
+.lora-grid figcaption span,
+.lora-note,
+.lora-grid small {
+  color: #66746d;
+  font-size: 13px;
+}
+.lora-grid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #edf1ed;
+  border-radius: 10px;
+}
+.lora-grid dl {
+  margin: 12px 0;
+}
+.lora-panel dt {
+  font-weight: 600;
+}
+.lora-panel dd {
+  margin: 0 0 8px;
+}
+.lora-findings > div {
+  border-bottom: 1px solid #e1e7df;
+  padding: 10px 0;
+}
+.lora-references {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.lora-references img {
+  width: 100%;
+  height: 230px;
+  object-fit: contain;
+  background: #eef1eb;
+  border-radius: 8px;
+}
+.lora-references figcaption {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.lora-panel details {
+  margin-top: 24px;
+}
+.lora-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+@media (max-width: 700px) {
+  .lora-grid,
+  .lora-references {
+    grid-template-columns: 1fr;
+  }
+  .lora-report {
+    padding: 16px;
+  }
+  .lora-heading {
+    flex-wrap: wrap;
+  }
+}

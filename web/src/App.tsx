@@ -3,6 +3,7 @@ import { DirectionBrief } from "./Direction";
 import type { FormEvent, ReactNode } from "react";
 import { active, asset, post, request } from "./api";
 import LearningPanel from "./LearningPanel";
+import LoraPanel from "./LoraPanel";
 import ModelSettingsPanel from "./ModelSettingsPanel";
 import type { Creation, Job, Painter, System } from "./api";
 
@@ -164,7 +165,7 @@ export default function App() {
   const [page, setPage] = useState(0);
   const [system, setSystem] = useState<System | null>(null);
   const [view, setView] = useState<
-    "studio" | "gallery" | "learning" | "models"
+    "studio" | "gallery" | "learning" | "models" | "lora"
   >("studio");
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(true);
@@ -392,6 +393,13 @@ export default function App() {
             学习
             <span className="nav-dot" />
           </button>
+          <button
+            className={view === "lora" ? "nav-item selected" : "nav-item"}
+            onClick={() => setView("lora")}
+          >
+            <Icon name="spark" />
+            LoRA 实验
+          </button>
         </nav>
         <div className="sidebar-section">
           <div className="nav-label">
@@ -457,13 +465,15 @@ export default function App() {
           <div className="breadcrumb">
             我的空间 <span>/</span>{" "}
             <strong>
-              {view === "models"
-                ? "模型设置"
-                : view === "studio"
-                  ? "画室"
-                  : view === "learning"
-                    ? "学习手记"
-                    : "作品库"}
+              {view === "lora"
+                ? "LoRA 实验"
+                : view === "models"
+                  ? "模型设置"
+                  : view === "studio"
+                    ? "画室"
+                    : view === "learning"
+                      ? "学习手记"
+                      : "作品库"}
             </strong>
           </div>
           <div className="topbar-right">
@@ -479,22 +489,26 @@ export default function App() {
             <div>
               <div className="eyebrow">YOUR CREATIVE SPACE</div>
               <h1>
-                {view === "models"
-                  ? "为画师换一套更好的工具。"
-                  : view === "learning"
-                    ? "每一笔，都有新的收获。"
-                    : view === "studio"
-                      ? "今天，想画些什么？"
-                      : "把灵感，收藏成作品。"}
+                {view === "lora"
+                  ? "让学习效果，看得见。"
+                  : view === "models"
+                    ? "为画师换一套更好的工具。"
+                    : view === "learning"
+                      ? "每一笔，都有新的收获。"
+                      : view === "studio"
+                        ? "今天，想画些什么？"
+                        : "把灵感，收藏成作品。"}
               </h1>
               <p>
-                {view === "models"
-                  ? "独立配置构思、生图与视觉评价服务。"
-                  : view === "learning"
-                    ? "循着课程练习，让经验回到下一次创作。"
-                    : view === "studio"
-                      ? "从一个念头开始，让画师为你落笔。"
-                      : "每一幅画，都留着一次探索的痕迹。"}
+                {view === "lora"
+                  ? "用同题同种子的对照，检查画风与人物属性。"
+                  : view === "models"
+                    ? "独立配置构思、生图与视觉评价服务。"
+                    : view === "learning"
+                      ? "循着课程练习，让经验回到下一次创作。"
+                      : view === "studio"
+                        ? "从一个念头开始，让画师为你落笔。"
+                        : "每一幅画，都留着一次探索的痕迹。"}
               </p>
             </div>
             <div className="heading-decoration" aria-hidden="true">
@@ -527,6 +541,12 @@ export default function App() {
                   .then(setSystem)
                   .catch(() => {});
               }}
+            />
+          ) : view === "lora" && painter ? (
+            <LoraPanel
+              key={selected}
+              painterId={selected}
+              painterName={painter.name}
             />
           ) : !painters.length && !loading ? (
             <div className="welcome-empty">
