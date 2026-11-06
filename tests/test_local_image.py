@@ -36,6 +36,19 @@ def plan():
     return result
 
 
+def test_fullbody_config_roundtrip_preserves_sampling(local_config):
+    local_config.local_image.width = 768
+    local_config.local_image.height = 1152
+    restored = ProviderConfig.model_validate_json(local_config.model_dump_json())
+    assert restored.local_image.width == 768
+    assert restored.local_image.height == 1152
+    for invalid_height in (1153, 1216):
+        payload = local_config.model_dump()
+        payload['local_image']['height'] = invalid_height
+        with pytest.raises(ValidationError):
+            ProviderConfig.model_validate(payload)
+
+
 def test_local_generator_uses_prompt_file_and_no_shell(local_config, plan, monkeypatch):
     raw = MockProvider().generate(plan)
     local_config.local_image.clip_skip = 2

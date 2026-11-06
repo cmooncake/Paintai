@@ -15,8 +15,8 @@ class LocalImageConfig(Model):
     executable: Path
     model_path: Path
     work_dir: Path = Path("data/local-image/runs")
-    width: int = Field(default=512, ge=256, le=1024, multiple_of=64)
-    height: int = Field(default=512, ge=256, le=1024, multiple_of=64)
+    width: int = Field(default=512, ge=256, le=1152, multiple_of=64)
+    height: int = Field(default=512, ge=256, le=1152, multiple_of=64)
     steps: int = Field(default=4, ge=1, le=50)
     cfg_scale: float = Field(default=1.0, ge=0, le=20, allow_inf_nan=False)
     threads: int = Field(default=8, ge=1, le=64)

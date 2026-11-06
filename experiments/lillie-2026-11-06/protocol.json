@@ -1,0 +1,2744 @@
+{
+  "base_model": "Animagine XL 4.0 Opt",
+  "base_model_sha256": "6327eca98bfb6538dd7a4edce22484a1bbc57a8cff6b11d075d40da1afb847ac",
+  "fullbody": {
+    "topic": "莉莉艾（宝可梦太阳／月亮初始造型）全身照：浅金长发、绿眼睛、白色宽檐帽、白色无袖连衣裙和白色鞋子，完整站姿，帽子和鞋子均入镜，浅青背景。",
+    "prompt": "1girl, solo, lillie \\(pokemon\\), pokemon, safe, (full body:1.3), standing, head to toe, shoes visible, hat fully visible, long blonde hair, green eyes, white sun hat, white dress, sleeveless, white shoes, gentle smile, arms at sides, plain pale teal background, fine colored lineart, soft lighting, masterpiece, high score, great score, absurdres",
+    "actual_negative_prompt": "low quality, blurry, bad anatomy, malformed hands, extra fingers, extra limbs, text, watermark, photorealistic, 3d render, cropped, out of frame, upper body, close-up, portrait, missing feet, missing shoes, nsfw, nude, cleavage, lingerie, swimsuit, blue hair, green hair, pink hair, purple hair, blue eyes, pink eyes, purple eyes, yellow background, beige background, pink background, orange background, multicolored hair, dyed hair tips, patterned background, decorative background",
+    "sampling": {
+      "width": 768,
+      "height": 1152,
+      "steps": 28,
+      "cfg_scale": 5.0,
+      "sampling_method": "euler_a",
+      "scheduler": "discrete",
+      "seed": 42,
+      "threads": 8,
+      "clip_skip": 2,
+      "negative_prompt": "low quality, blurry, bad anatomy, malformed hands, extra fingers, extra limbs, text, watermark, photorealistic, 3d render, cropped, out of frame, upper body, close-up, portrait, missing feet, missing shoes, nsfw, nude, cleavage, lingerie, swimsuit"
+    }
+  },
+  "portrait": {
+    "topic": "莉莉艾（宝可梦太阳／月亮初始造型）人物肖像：长浅金发、绿眼睛、完整白色宽檐帽、白色无袖高领连衣裙、纯浅青背景。",
+    "prompt": "1girl, solo, lillie \\(pokemon\\), pokemon, safe, upper body, long blonde hair, green eyes, white sun hat, hat fully visible, white dress, sleeveless, high neckline, gentle smile, plain pale teal background, fine colored lineart, layered irises, soft lighting, masterpiece, high score, great score, absurdres",
+    "negative_prompt": "low quality, blurry, bad anatomy, extra limbs, multiple girls, collage, character sheet, text, watermark, photorealistic, 3d render, thick outlines, harsh shadows, nsfw, nude, cleavage, lingerie, swimsuit",
+    "sampling": {
+      "width": 1024,
+      "height": 1024,
+      "steps": 28,
+      "cfg_scale": 5.0,
+      "sampling_method": "euler_a",
+      "scheduler": "discrete",
+      "seed": 42,
+      "threads": 8,
+      "clip_skip": 2
+    }
+  },
+  "training": {
+    "old160": {
+      "steps": 160,
+      "resolution": 768,
+      "rank": 4,
+      "seed": 42,
+      "learning_rate": 5e-05,
+      "environment": {
+        "torch": "2.10.0",
+        "diffusers": "0.37.1",
+        "peft": "0.18.1",
+        "transformers": "4.57.6",
+        "accelerate": "1.12.0",
+        "python": "3.14.5",
+        "threads": 6
+      },
+      "script_sha256": "79e943700e48c4b4911cfa0691abdb33a61769d6087f42d8c96ec07d3ddeb74d",
+      "cached_features_sha256": "437463406b8f852b5a1cf212a27ab5f6524528e56a53356a39e4973d19a0b2c5",
+      "validation_before": {
+        "metric": "fixed-noise denoising MSE, not style similarity",
+        "images": [
+          {
+            "id": "pixiv-99170653",
+            "mse": 0.1932900082319975
+          },
+          {
+            "id": "pixiv-94442641",
+            "mse": 0.16680842824280262
+          },
+          {
+            "id": "pixiv-78296295",
+            "mse": 0.17967092245817184
+          },
+          {
+            "id": "pixiv-77171026",
+            "mse": 0.19962537102401257
+          }
+        ],
+        "mean": 0.18484868248924613
+      },
+      "validation_after": {
+        "metric": "fixed-noise denoising MSE, not style similarity",
+        "images": [
+          {
+            "id": "pixiv-99170653",
+            "mse": 0.19043550174683332
+          },
+          {
+            "id": "pixiv-94442641",
+            "mse": 0.16442896611988544
+          },
+          {
+            "id": "pixiv-78296295",
+            "mse": 0.177490022033453
+          },
+          {
+            "id": "pixiv-77171026",
+            "mse": 0.1961173340678215
+          }
+        ],
+        "mean": 0.18211795599199831
+      },
+      "max_parameter_change": 0.00725555419921875,
+      "reload_max_error": 0.0,
+      "adapter_prediction_mean_delta": 0.012781143188476562,
+      "manifest_sha256": "a0eaf5e812f06d16e207b0828ac2cc3ab1852a51e0829ca60b4e57cec6a6cc27",
+      "independent_originals": 10,
+      "views": 20,
+      "losses": [
+        {
+          "step": 1,
+          "loss": 0.34620216488838196,
+          "gradient_norm": 0.05045264586806297,
+          "unweighted_loss": 0.34738460183143616,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 18.69
+        },
+        {
+          "step": 2,
+          "loss": 0.29525694251060486,
+          "gradient_norm": 0.05335297808051109,
+          "unweighted_loss": 0.2944658696651459,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 40.54
+        },
+        {
+          "step": 3,
+          "loss": 0.013950992375612259,
+          "gradient_norm": 0.0032908841967582703,
+          "unweighted_loss": 0.013961803168058395,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 57.14
+        },
+        {
+          "step": 4,
+          "loss": 0.14472785592079163,
+          "gradient_norm": 0.035597387701272964,
+          "unweighted_loss": 0.14479731023311615,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 73.98
+        },
+        {
+          "step": 5,
+          "loss": 0.35068628191947937,
+          "gradient_norm": 0.09324480593204498,
+          "unweighted_loss": 0.3528844118118286,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 92.17
+        },
+        {
+          "step": 6,
+          "loss": 0.2213236689567566,
+          "gradient_norm": 0.03995221480727196,
+          "unweighted_loss": 0.2198575884103775,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 117.78
+        },
+        {
+          "step": 7,
+          "loss": 0.045735012739896774,
+          "gradient_norm": 0.009313598275184631,
+          "unweighted_loss": 0.04577498137950897,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 139.96
+        },
+        {
+          "step": 8,
+          "loss": 0.16122625768184662,
+          "gradient_norm": 0.06520835310220718,
+          "unweighted_loss": 0.16229885816574097,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 162.49
+        },
+        {
+          "step": 9,
+          "loss": 0.031242217868566513,
+          "gradient_norm": 0.008773990906774998,
+          "unweighted_loss": 0.03130495548248291,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 185.28
+        },
+        {
+          "step": 10,
+          "loss": 0.3735751509666443,
+          "gradient_norm": 0.12089582532644272,
+          "unweighted_loss": 0.3780564069747925,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 210.25
+        },
+        {
+          "step": 11,
+          "loss": 0.1818196177482605,
+          "gradient_norm": 0.044186852872371674,
+          "unweighted_loss": 0.18300920724868774,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 233.38
+        },
+        {
+          "step": 12,
+          "loss": 0.1315065324306488,
+          "gradient_norm": 0.04556720331311226,
+          "unweighted_loss": 0.13218088448047638,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 256.95
+        },
+        {
+          "step": 13,
+          "loss": 0.049547068774700165,
+          "gradient_norm": 0.008333069272339344,
+          "unweighted_loss": 0.04906398802995682,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 282.97
+        },
+        {
+          "step": 14,
+          "loss": 0.16019248962402344,
+          "gradient_norm": 0.03977238014340401,
+          "unweighted_loss": 0.16038425266742706,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 309.07
+        },
+        {
+          "step": 15,
+          "loss": 0.1617211550474167,
+          "gradient_norm": 0.04737025126814842,
+          "unweighted_loss": 0.15754489600658417,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 331.9
+        },
+        {
+          "step": 16,
+          "loss": 0.05780896544456482,
+          "gradient_norm": 0.01557393092662096,
+          "unweighted_loss": 0.05726850777864456,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 355.15
+        },
+        {
+          "step": 17,
+          "loss": 0.011461366899311543,
+          "gradient_norm": 0.003931181505322456,
+          "unweighted_loss": 0.011512134224176407,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 377.87
+        },
+        {
+          "step": 18,
+          "loss": 0.007568742148578167,
+          "gradient_norm": 0.00404146546497941,
+          "unweighted_loss": 0.007530445698648691,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 395.83
+        },
+        {
+          "step": 19,
+          "loss": 0.35708481073379517,
+          "gradient_norm": 0.06356029212474823,
+          "unweighted_loss": 0.3560376763343811,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 416.85
+        },
+        {
+          "step": 20,
+          "loss": 0.3204454183578491,
+          "gradient_norm": 0.0654810294508934,
+          "unweighted_loss": 0.3157557547092438,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 436.84
+        },
+        {
+          "step": 21,
+          "loss": 0.03250977396965027,
+          "gradient_norm": 0.011313922703266144,
+          "unweighted_loss": 0.0320642851293087,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 457.5
+        },
+        {
+          "step": 22,
+          "loss": 0.06005057319998741,
+          "gradient_norm": 0.01477841567248106,
+          "unweighted_loss": 0.060390666127204895,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 482.85
+        },
+        {
+          "step": 23,
+          "loss": 0.15263494849205017,
+          "gradient_norm": 0.040162716060876846,
+          "unweighted_loss": 0.15254229307174683,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 508.31
+        },
+        {
+          "step": 24,
+          "loss": 0.022370770573616028,
+          "gradient_norm": 0.024468297138810158,
+          "unweighted_loss": 0.022432036697864532,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 529.44
+        },
+        {
+          "step": 25,
+          "loss": 0.06016312167048454,
+          "gradient_norm": 0.023240303620696068,
+          "unweighted_loss": 0.060113854706287384,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 547.91
+        },
+        {
+          "step": 26,
+          "loss": 0.024660948663949966,
+          "gradient_norm": 0.013119159266352654,
+          "unweighted_loss": 0.024696044623851776,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 571.07
+        },
+        {
+          "step": 27,
+          "loss": 0.28760311007499695,
+          "gradient_norm": 0.04191577434539795,
+          "unweighted_loss": 0.28986915946006775,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 594.38
+        },
+        {
+          "step": 28,
+          "loss": 0.28683704137802124,
+          "gradient_norm": 0.08684380352497101,
+          "unweighted_loss": 0.2831152081489563,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 612.24
+        },
+        {
+          "step": 29,
+          "loss": 0.06115896627306938,
+          "gradient_norm": 0.012246758677065372,
+          "unweighted_loss": 0.060107991099357605,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 629.57
+        },
+        {
+          "step": 30,
+          "loss": 0.3288480341434479,
+          "gradient_norm": 0.050359148532152176,
+          "unweighted_loss": 0.3285580277442932,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 647.79
+        },
+        {
+          "step": 31,
+          "loss": 0.3716282546520233,
+          "gradient_norm": 0.05404648557305336,
+          "unweighted_loss": 0.3735913336277008,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 664.76
+        },
+        {
+          "step": 32,
+          "loss": 0.32826313376426697,
+          "gradient_norm": 0.06163003668189049,
+          "unweighted_loss": 0.32628753781318665,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 682.18
+        },
+        {
+          "step": 33,
+          "loss": 0.26493722200393677,
+          "gradient_norm": 0.03863678127527237,
+          "unweighted_loss": 0.2649884521961212,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 698.91
+        },
+        {
+          "step": 34,
+          "loss": 0.03565618768334389,
+          "gradient_norm": 0.011041820049285889,
+          "unweighted_loss": 0.03611396253108978,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 717.36
+        },
+        {
+          "step": 35,
+          "loss": 0.004607205279171467,
+          "gradient_norm": 0.002496890025213361,
+          "unweighted_loss": 0.00460843788459897,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 735.7
+        },
+        {
+          "step": 36,
+          "loss": 0.3248733580112457,
+          "gradient_norm": 0.03479888662695885,
+          "unweighted_loss": 0.3257618546485901,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 758.79
+        },
+        {
+          "step": 37,
+          "loss": 0.30717650055885315,
+          "gradient_norm": 0.03932402282953262,
+          "unweighted_loss": 0.30903762578964233,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 778.67
+        },
+        {
+          "step": 38,
+          "loss": 0.005481087137013674,
+          "gradient_norm": 0.0031758586410433054,
+          "unweighted_loss": 0.005403217393904924,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 800.89
+        },
+        {
+          "step": 39,
+          "loss": 0.3326173424720764,
+          "gradient_norm": 0.056655049324035645,
+          "unweighted_loss": 0.33342546224594116,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 824.39
+        },
+        {
+          "step": 40,
+          "loss": 0.4643253982067108,
+          "gradient_norm": 0.07728199660778046,
+          "unweighted_loss": 0.4647381007671356,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 848.89
+        },
+        {
+          "step": 41,
+          "loss": 0.3435935378074646,
+          "gradient_norm": 0.058101214468479156,
+          "unweighted_loss": 0.3443591892719269,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 938.67
+        },
+        {
+          "step": 42,
+          "loss": 0.30489715933799744,
+          "gradient_norm": 0.03993965685367584,
+          "unweighted_loss": 0.3050660490989685,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 964.61
+        },
+        {
+          "step": 43,
+          "loss": 0.3043481111526489,
+          "gradient_norm": 0.07012485712766647,
+          "unweighted_loss": 0.3035091757774353,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 990.15
+        },
+        {
+          "step": 44,
+          "loss": 0.20071910321712494,
+          "gradient_norm": 0.035123229026794434,
+          "unweighted_loss": 0.20121149718761444,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 1015.25
+        },
+        {
+          "step": 45,
+          "loss": 0.029240479692816734,
+          "gradient_norm": 0.00331377936527133,
+          "unweighted_loss": 0.029269443824887276,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 1040.67
+        },
+        {
+          "step": 46,
+          "loss": 0.26975953578948975,
+          "gradient_norm": 0.041654519736766815,
+          "unweighted_loss": 0.269704669713974,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 1069.03
+        },
+        {
+          "step": 47,
+          "loss": 0.02937234565615654,
+          "gradient_norm": 0.009015172719955444,
+          "unweighted_loss": 0.029854634776711464,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 1094.36
+        },
+        {
+          "step": 48,
+          "loss": 0.23122406005859375,
+          "gradient_norm": 0.0472806952893734,
+          "unweighted_loss": 0.22410999238491058,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 1119.13
+        },
+        {
+          "step": 49,
+          "loss": 0.00564101105555892,
+          "gradient_norm": 0.010285969823598862,
+          "unweighted_loss": 0.0058289384469389915,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 1144.15
+        },
+        {
+          "step": 50,
+          "loss": 0.6174701452255249,
+          "gradient_norm": 0.09322933852672577,
+          "unweighted_loss": 0.6165797114372253,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 1169.35
+        },
+        {
+          "step": 51,
+          "loss": 0.059554990381002426,
+          "gradient_norm": 0.01076479721814394,
+          "unweighted_loss": 0.059629883617162704,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 1194.28
+        },
+        {
+          "step": 52,
+          "loss": 0.24335061013698578,
+          "gradient_norm": 0.03248152509331703,
+          "unweighted_loss": 0.2433219999074936,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 1219.2
+        },
+        {
+          "step": 53,
+          "loss": 0.015253035351634026,
+          "gradient_norm": 0.004406213294714689,
+          "unweighted_loss": 0.015137757174670696,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 1244.18
+        },
+        {
+          "step": 54,
+          "loss": 0.024035615846514702,
+          "gradient_norm": 0.004929720889776945,
+          "unweighted_loss": 0.02365933544933796,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 1269.08
+        },
+        {
+          "step": 55,
+          "loss": 0.004366893321275711,
+          "gradient_norm": 0.002991391345858574,
+          "unweighted_loss": 0.004422783851623535,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 1294.0
+        },
+        {
+          "step": 56,
+          "loss": 0.3136967122554779,
+          "gradient_norm": 0.043826643377542496,
+          "unweighted_loss": 0.3161190450191498,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 1318.81
+        },
+        {
+          "step": 57,
+          "loss": 0.02361276187002659,
+          "gradient_norm": 0.007682305760681629,
+          "unweighted_loss": 0.0235504899173975,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 1344.01
+        },
+        {
+          "step": 58,
+          "loss": 0.2644202411174774,
+          "gradient_norm": 0.0304590854793787,
+          "unweighted_loss": 0.2635918855667114,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 1368.59
+        },
+        {
+          "step": 59,
+          "loss": 0.03831102326512337,
+          "gradient_norm": 0.01108265109360218,
+          "unweighted_loss": 0.03834821283817291,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 1393.19
+        },
+        {
+          "step": 60,
+          "loss": 0.020783981308341026,
+          "gradient_norm": 0.004843317903578281,
+          "unweighted_loss": 0.020755477249622345,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 1417.72
+        },
+        {
+          "step": 61,
+          "loss": 0.3090263307094574,
+          "gradient_norm": 0.0526711530983448,
+          "unweighted_loss": 0.3075014650821686,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 1442.96
+        },
+        {
+          "step": 62,
+          "loss": 0.06170697510242462,
+          "gradient_norm": 0.01124328002333641,
+          "unweighted_loss": 0.06179022789001465,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 1470.31
+        },
+        {
+          "step": 63,
+          "loss": 0.024356374517083168,
+          "gradient_norm": 0.005248388275504112,
+          "unweighted_loss": 0.02438974380493164,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 1498.65
+        },
+        {
+          "step": 64,
+          "loss": 0.019000418484210968,
+          "gradient_norm": 0.006973107345402241,
+          "unweighted_loss": 0.018704891204833984,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 1526.49
+        },
+        {
+          "step": 65,
+          "loss": 0.31409600377082825,
+          "gradient_norm": 0.06024114415049553,
+          "unweighted_loss": 0.314816951751709,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 1554.18
+        },
+        {
+          "step": 66,
+          "loss": 0.02745809219777584,
+          "gradient_norm": 0.006633194629102945,
+          "unweighted_loss": 0.027585851028561592,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 1581.75
+        },
+        {
+          "step": 67,
+          "loss": 0.004047940019518137,
+          "gradient_norm": 0.0029155926313251257,
+          "unweighted_loss": 0.004129891283810139,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 1608.89
+        },
+        {
+          "step": 68,
+          "loss": 0.019478868693113327,
+          "gradient_norm": 0.0041808271780610085,
+          "unweighted_loss": 0.01951727271080017,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 1635.83
+        },
+        {
+          "step": 69,
+          "loss": 0.07278717309236526,
+          "gradient_norm": 0.026660550385713577,
+          "unweighted_loss": 0.07337754219770432,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 1662.89
+        },
+        {
+          "step": 70,
+          "loss": 0.1871372014284134,
+          "gradient_norm": 0.03514961153268814,
+          "unweighted_loss": 0.18658684194087982,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 1689.86
+        },
+        {
+          "step": 71,
+          "loss": 0.3187740445137024,
+          "gradient_norm": 0.03887037932872772,
+          "unweighted_loss": 0.31933313608169556,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 1717.23
+        },
+        {
+          "step": 72,
+          "loss": 0.2107914239168167,
+          "gradient_norm": 0.026031453162431717,
+          "unweighted_loss": 0.21078552305698395,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 1742.72
+        },
+        {
+          "step": 73,
+          "loss": 0.20812931656837463,
+          "gradient_norm": 0.02677047811448574,
+          "unweighted_loss": 0.20749902725219727,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 1764.3
+        },
+        {
+          "step": 74,
+          "loss": 0.21303346753120422,
+          "gradient_norm": 0.02349752001464367,
+          "unweighted_loss": 0.21312959492206573,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 1784.58
+        },
+        {
+          "step": 75,
+          "loss": 0.006601634901016951,
+          "gradient_norm": 0.002742211567237973,
+          "unweighted_loss": 0.0065345424227416515,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 1802.83
+        },
+        {
+          "step": 76,
+          "loss": 0.15667609870433807,
+          "gradient_norm": 0.02923234924674034,
+          "unweighted_loss": 0.15933363139629364,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 1821.6
+        },
+        {
+          "step": 77,
+          "loss": 0.10883013159036636,
+          "gradient_norm": 0.015284901484847069,
+          "unweighted_loss": 0.10843120515346527,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 1841.37
+        },
+        {
+          "step": 78,
+          "loss": 0.008375351317226887,
+          "gradient_norm": 0.003632098436355591,
+          "unweighted_loss": 0.008394607342779636,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 1867.32
+        },
+        {
+          "step": 79,
+          "loss": 0.024386441335082054,
+          "gradient_norm": 0.00856118742376566,
+          "unweighted_loss": 0.024507751688361168,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 1891.47
+        },
+        {
+          "step": 80,
+          "loss": 0.10001087188720703,
+          "gradient_norm": 0.022224746644496918,
+          "unweighted_loss": 0.0999697744846344,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 1911.22
+        },
+        {
+          "step": 81,
+          "loss": 0.01641790382564068,
+          "gradient_norm": 0.006907906383275986,
+          "unweighted_loss": 0.016541609540581703,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 1990.54
+        },
+        {
+          "step": 82,
+          "loss": 0.02066849172115326,
+          "gradient_norm": 0.0032141325064003468,
+          "unweighted_loss": 0.020526932552456856,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 2007.41
+        },
+        {
+          "step": 83,
+          "loss": 0.011487613432109356,
+          "gradient_norm": 0.004411462228745222,
+          "unweighted_loss": 0.011530626565217972,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 2024.04
+        },
+        {
+          "step": 84,
+          "loss": 0.33651912212371826,
+          "gradient_norm": 0.047213464975357056,
+          "unweighted_loss": 0.3364581763744354,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 2045.88
+        },
+        {
+          "step": 85,
+          "loss": 0.016035854816436768,
+          "gradient_norm": 0.00645842682570219,
+          "unweighted_loss": 0.01568574272096157,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 2069.16
+        },
+        {
+          "step": 86,
+          "loss": 0.007411248981952667,
+          "gradient_norm": 0.0034960764460265636,
+          "unweighted_loss": 0.007382730022072792,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 2092.66
+        },
+        {
+          "step": 87,
+          "loss": 0.009944844990968704,
+          "gradient_norm": 0.0028270173352211714,
+          "unweighted_loss": 0.01008102111518383,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 2121.64
+        },
+        {
+          "step": 88,
+          "loss": 0.3187057375907898,
+          "gradient_norm": 0.04343302920460701,
+          "unweighted_loss": 0.3185496926307678,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 2146.24
+        },
+        {
+          "step": 89,
+          "loss": 0.00789612252265215,
+          "gradient_norm": 0.0029638272244483232,
+          "unweighted_loss": 0.0077510857954621315,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 2175.09
+        },
+        {
+          "step": 90,
+          "loss": 0.19945743680000305,
+          "gradient_norm": 0.027379490435123444,
+          "unweighted_loss": 0.20043981075286865,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 2195.48
+        },
+        {
+          "step": 91,
+          "loss": 0.1515810340642929,
+          "gradient_norm": 0.024149063974618912,
+          "unweighted_loss": 0.15192042291164398,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 2217.22
+        },
+        {
+          "step": 92,
+          "loss": 0.04153522476553917,
+          "gradient_norm": 0.006994585040956736,
+          "unweighted_loss": 0.04125091806054115,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 2244.18
+        },
+        {
+          "step": 93,
+          "loss": 0.18117889761924744,
+          "gradient_norm": 0.024656735360622406,
+          "unweighted_loss": 0.1799372434616089,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 2272.66
+        },
+        {
+          "step": 94,
+          "loss": 0.010117784142494202,
+          "gradient_norm": 0.00358070177026093,
+          "unweighted_loss": 0.01030042301863432,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 2298.04
+        },
+        {
+          "step": 95,
+          "loss": 0.0457647405564785,
+          "gradient_norm": 0.0072321840561926365,
+          "unweighted_loss": 0.04511547461152077,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 2324.58
+        },
+        {
+          "step": 96,
+          "loss": 0.14887391030788422,
+          "gradient_norm": 0.021075384691357613,
+          "unweighted_loss": 0.1491248905658722,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 2355.53
+        },
+        {
+          "step": 97,
+          "loss": 0.00610314542427659,
+          "gradient_norm": 0.002540642162784934,
+          "unweighted_loss": 0.0060960836708545685,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 2382.59
+        },
+        {
+          "step": 98,
+          "loss": 0.33251872658729553,
+          "gradient_norm": 0.04505869373679161,
+          "unweighted_loss": 0.3325520157814026,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 2411.0
+        },
+        {
+          "step": 99,
+          "loss": 0.0963004007935524,
+          "gradient_norm": 0.020216204226017,
+          "unweighted_loss": 0.09553895890712738,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 2440.85
+        },
+        {
+          "step": 100,
+          "loss": 0.32011833786964417,
+          "gradient_norm": 0.046312011778354645,
+          "unweighted_loss": 0.3205829858779907,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 2466.26
+        },
+        {
+          "step": 101,
+          "loss": 0.342777818441391,
+          "gradient_norm": 0.04049167409539223,
+          "unweighted_loss": 0.3443382680416107,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 2487.7
+        },
+        {
+          "step": 102,
+          "loss": 0.03873426094651222,
+          "gradient_norm": 0.01030224934220314,
+          "unweighted_loss": 0.03887109458446503,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 2506.55
+        },
+        {
+          "step": 103,
+          "loss": 0.3345375955104828,
+          "gradient_norm": 0.04216519743204117,
+          "unweighted_loss": 0.33271726965904236,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 2532.69
+        },
+        {
+          "step": 104,
+          "loss": 0.3100636601448059,
+          "gradient_norm": 0.037174422293901443,
+          "unweighted_loss": 0.30865156650543213,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 2557.74
+        },
+        {
+          "step": 105,
+          "loss": 0.13561664521694183,
+          "gradient_norm": 0.027768142521381378,
+          "unweighted_loss": 0.13606496155261993,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 2584.06
+        },
+        {
+          "step": 106,
+          "loss": 0.08027729392051697,
+          "gradient_norm": 0.01116721611469984,
+          "unweighted_loss": 0.08039980381727219,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 2604.58
+        },
+        {
+          "step": 107,
+          "loss": 0.025638220831751823,
+          "gradient_norm": 0.004709258675575256,
+          "unweighted_loss": 0.025563808158040047,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 2623.09
+        },
+        {
+          "step": 108,
+          "loss": 0.2999396324157715,
+          "gradient_norm": 0.031249230727553368,
+          "unweighted_loss": 0.29977113008499146,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 2641.02
+        },
+        {
+          "step": 109,
+          "loss": 0.0067566027864813805,
+          "gradient_norm": 0.0017314152792096138,
+          "unweighted_loss": 0.006784242577850819,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 2664.1
+        },
+        {
+          "step": 110,
+          "loss": 0.28694939613342285,
+          "gradient_norm": 0.03775778412818909,
+          "unweighted_loss": 0.2910732328891754,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 2691.28
+        },
+        {
+          "step": 111,
+          "loss": 0.0577537901699543,
+          "gradient_norm": 0.013032753020524979,
+          "unweighted_loss": 0.05764693766832352,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 2715.27
+        },
+        {
+          "step": 112,
+          "loss": 0.32994088530540466,
+          "gradient_norm": 0.06295110285282135,
+          "unweighted_loss": 0.32928499579429626,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 2736.8
+        },
+        {
+          "step": 113,
+          "loss": 0.06789319962263107,
+          "gradient_norm": 0.010766235180199146,
+          "unweighted_loss": 0.06709203124046326,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 2763.52
+        },
+        {
+          "step": 114,
+          "loss": 0.2848310172557831,
+          "gradient_norm": 0.03398532792925835,
+          "unweighted_loss": 0.286516398191452,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 2792.0
+        },
+        {
+          "step": 115,
+          "loss": 0.01964077726006508,
+          "gradient_norm": 0.004383808001875877,
+          "unweighted_loss": 0.019413944333791733,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 2821.13
+        },
+        {
+          "step": 116,
+          "loss": 0.22833269834518433,
+          "gradient_norm": 0.030006960034370422,
+          "unweighted_loss": 0.228952094912529,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 2847.41
+        },
+        {
+          "step": 117,
+          "loss": 0.07248930633068085,
+          "gradient_norm": 0.011516114696860313,
+          "unweighted_loss": 0.07257134467363358,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 2876.86
+        },
+        {
+          "step": 118,
+          "loss": 0.385834664106369,
+          "gradient_norm": 0.04128830507397652,
+          "unweighted_loss": 0.38600945472717285,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 2907.52
+        },
+        {
+          "step": 119,
+          "loss": 0.2843417525291443,
+          "gradient_norm": 0.06215299665927887,
+          "unweighted_loss": 0.2789466083049774,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 2932.18
+        },
+        {
+          "step": 120,
+          "loss": 0.08871768414974213,
+          "gradient_norm": 0.017009643837809563,
+          "unweighted_loss": 0.0899699404835701,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 2955.35
+        },
+        {
+          "step": 121,
+          "loss": 0.0882204994559288,
+          "gradient_norm": 0.01758180558681488,
+          "unweighted_loss": 0.08892980217933655,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 2978.21
+        },
+        {
+          "step": 122,
+          "loss": 0.009266347624361515,
+          "gradient_norm": 0.003757759230211377,
+          "unweighted_loss": 0.009272255934774876,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 3002.13
+        },
+        {
+          "step": 123,
+          "loss": 0.1901235431432724,
+          "gradient_norm": 0.03461308404803276,
+          "unweighted_loss": 0.18981191515922546,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 3028.34
+        },
+        {
+          "step": 124,
+          "loss": 0.2979566752910614,
+          "gradient_norm": 0.030681215226650238,
+          "unweighted_loss": 0.299215167760849,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 3052.59
+        },
+        {
+          "step": 125,
+          "loss": 0.2838824689388275,
+          "gradient_norm": 0.03464086353778839,
+          "unweighted_loss": 0.2842456102371216,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 3077.21
+        },
+        {
+          "step": 126,
+          "loss": 0.1015193983912468,
+          "gradient_norm": 0.017919102683663368,
+          "unweighted_loss": 0.10106322169303894,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 3101.77
+        },
+        {
+          "step": 127,
+          "loss": 0.2594466209411621,
+          "gradient_norm": 0.06417527049779892,
+          "unweighted_loss": 0.25833410024642944,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 3123.67
+        },
+        {
+          "step": 128,
+          "loss": 0.23093505203723907,
+          "gradient_norm": 0.030899444594979286,
+          "unweighted_loss": 0.23308822512626648,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 3144.05
+        },
+        {
+          "step": 129,
+          "loss": 0.30654364824295044,
+          "gradient_norm": 0.04760236293077469,
+          "unweighted_loss": 0.30573469400405884,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 3164.74
+        },
+        {
+          "step": 130,
+          "loss": 0.03308537229895592,
+          "gradient_norm": 0.007965427823364735,
+          "unweighted_loss": 0.03355574235320091,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 3186.07
+        },
+        {
+          "step": 131,
+          "loss": 0.028643185272812843,
+          "gradient_norm": 0.00817116443067789,
+          "unweighted_loss": 0.028445757925510406,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 3206.53
+        },
+        {
+          "step": 132,
+          "loss": 0.35043102502822876,
+          "gradient_norm": 0.039358045905828476,
+          "unweighted_loss": 0.35149502754211426,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 3227.85
+        },
+        {
+          "step": 133,
+          "loss": 0.07490716874599457,
+          "gradient_norm": 0.020850758999586105,
+          "unweighted_loss": 0.07318969070911407,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 3249.2
+        },
+        {
+          "step": 134,
+          "loss": 0.3053394556045532,
+          "gradient_norm": 0.04080875590443611,
+          "unweighted_loss": 0.305795282125473,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 3270.27
+        },
+        {
+          "step": 135,
+          "loss": 0.27857136726379395,
+          "gradient_norm": 0.03757493570446968,
+          "unweighted_loss": 0.2793310880661011,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 3291.5
+        },
+        {
+          "step": 136,
+          "loss": 0.1261410415172577,
+          "gradient_norm": 0.028467951342463493,
+          "unweighted_loss": 0.1261511594057083,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 3315.43
+        },
+        {
+          "step": 137,
+          "loss": 0.04641285911202431,
+          "gradient_norm": 0.00912933237850666,
+          "unweighted_loss": 0.0455755740404129,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 3338.24
+        },
+        {
+          "step": 138,
+          "loss": 0.26962584257125854,
+          "gradient_norm": 0.029771720990538597,
+          "unweighted_loss": 0.2692027986049652,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 3359.16
+        },
+        {
+          "step": 139,
+          "loss": 0.32951807975769043,
+          "gradient_norm": 0.06351300328969955,
+          "unweighted_loss": 0.3260473310947418,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 3380.02
+        },
+        {
+          "step": 140,
+          "loss": 0.19854110479354858,
+          "gradient_norm": 0.027865972369909286,
+          "unweighted_loss": 0.19942528009414673,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 3402.49
+        },
+        {
+          "step": 141,
+          "loss": 0.033041685819625854,
+          "gradient_norm": 0.0054941121488809586,
+          "unweighted_loss": 0.033641617745161057,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 3423.14
+        },
+        {
+          "step": 142,
+          "loss": 0.024317219853401184,
+          "gradient_norm": 0.006602206267416477,
+          "unweighted_loss": 0.02464434877038002,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 3447.47
+        },
+        {
+          "step": 143,
+          "loss": 0.005434064194560051,
+          "gradient_norm": 0.002945998450741172,
+          "unweighted_loss": 0.005404579918831587,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 3472.19
+        },
+        {
+          "step": 144,
+          "loss": 0.34768787026405334,
+          "gradient_norm": 0.05329860374331474,
+          "unweighted_loss": 0.3468701243400574,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 3490.37
+        },
+        {
+          "step": 145,
+          "loss": 0.0382453091442585,
+          "gradient_norm": 0.010616714134812355,
+          "unweighted_loss": 0.038469016551971436,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 3507.02
+        },
+        {
+          "step": 146,
+          "loss": 0.008189216256141663,
+          "gradient_norm": 0.0021407906897366047,
+          "unweighted_loss": 0.008235711604356766,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 3524.42
+        },
+        {
+          "step": 147,
+          "loss": 0.03939524292945862,
+          "gradient_norm": 0.005615178495645523,
+          "unweighted_loss": 0.0386480949819088,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 3543.03
+        },
+        {
+          "step": 148,
+          "loss": 0.011879336088895798,
+          "gradient_norm": 0.0028359750285744667,
+          "unweighted_loss": 0.011814664117991924,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 3563.82
+        },
+        {
+          "step": 149,
+          "loss": 0.2333226352930069,
+          "gradient_norm": 0.02983962371945381,
+          "unweighted_loss": 0.23180069029331207,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 3591.97
+        },
+        {
+          "step": 150,
+          "loss": 0.22386200726032257,
+          "gradient_norm": 0.029813863337039948,
+          "unweighted_loss": 0.2229054719209671,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 3622.99
+        },
+        {
+          "step": 151,
+          "loss": 0.030193237587809563,
+          "gradient_norm": 0.0059302933514118195,
+          "unweighted_loss": 0.0301535464823246,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 3649.98
+        },
+        {
+          "step": 152,
+          "loss": 0.16227522492408752,
+          "gradient_norm": 0.028824929147958755,
+          "unweighted_loss": 0.1585894376039505,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 3671.8
+        },
+        {
+          "step": 153,
+          "loss": 0.17521964013576508,
+          "gradient_norm": 0.01895054616034031,
+          "unweighted_loss": 0.17379698157310486,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 3693.89
+        },
+        {
+          "step": 154,
+          "loss": 0.2980019450187683,
+          "gradient_norm": 0.038529276847839355,
+          "unweighted_loss": 0.29788240790367126,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 3720.25
+        },
+        {
+          "step": 155,
+          "loss": 0.308200865983963,
+          "gradient_norm": 0.033299241214990616,
+          "unweighted_loss": 0.3097064793109894,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 3748.22
+        },
+        {
+          "step": 156,
+          "loss": 0.35012274980545044,
+          "gradient_norm": 0.05073975771665573,
+          "unweighted_loss": 0.3510599732398987,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 3772.67
+        },
+        {
+          "step": 157,
+          "loss": 0.09252390265464783,
+          "gradient_norm": 0.016502607613801956,
+          "unweighted_loss": 0.09321197867393494,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 3792.08
+        },
+        {
+          "step": 158,
+          "loss": 0.003675200045108795,
+          "gradient_norm": 0.003007379360496998,
+          "unweighted_loss": 0.0036556674167513847,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 3817.18
+        },
+        {
+          "step": 159,
+          "loss": 0.037488922476768494,
+          "gradient_norm": 0.01743956282734871,
+          "unweighted_loss": 0.03758983314037323,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 3842.57
+        },
+        {
+          "step": 160,
+          "loss": 0.00681396946310997,
+          "gradient_norm": 0.005237384233623743,
+          "unweighted_loss": 0.006912939250469208,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 3868.36
+        }
+      ]
+    },
+    "new160": {
+      "steps": 160,
+      "resolution": 768,
+      "rank": 4,
+      "seed": 42,
+      "learning_rate": 0.0002,
+      "environment": {
+        "torch": "2.10.0",
+        "diffusers": "0.37.1",
+        "peft": "0.18.1",
+        "transformers": "4.57.6",
+        "accelerate": "1.12.0",
+        "python": "3.14.5",
+        "threads": 6
+      },
+      "script_sha256": "79e943700e48c4b4911cfa0691abdb33a61769d6087f42d8c96ec07d3ddeb74d",
+      "cached_features_sha256": "437463406b8f852b5a1cf212a27ab5f6524528e56a53356a39e4973d19a0b2c5",
+      "validation_before": {
+        "metric": "fixed-noise denoising MSE, not style similarity",
+        "images": [
+          {
+            "id": "pixiv-99170653",
+            "mse": 0.1932900082319975
+          },
+          {
+            "id": "pixiv-94442641",
+            "mse": 0.16680842824280262
+          },
+          {
+            "id": "pixiv-78296295",
+            "mse": 0.17967092245817184
+          },
+          {
+            "id": "pixiv-77171026",
+            "mse": 0.19962537102401257
+          }
+        ],
+        "mean": 0.18484868248924613
+      },
+      "validation_after": {
+        "metric": "fixed-noise denoising MSE, not style similarity",
+        "images": [
+          {
+            "id": "pixiv-99170653",
+            "mse": 0.1894282354041934
+          },
+          {
+            "id": "pixiv-94442641",
+            "mse": 0.16365105845034122
+          },
+          {
+            "id": "pixiv-78296295",
+            "mse": 0.17637081537395716
+          },
+          {
+            "id": "pixiv-77171026",
+            "mse": 0.19570177979767323
+          }
+        ],
+        "mean": 0.18128797225654125
+      },
+      "max_parameter_change": 0.019083037972450256,
+      "reload_max_error": 0.0,
+      "adapter_prediction_mean_delta": 0.024197466671466827,
+      "manifest_sha256": "a0eaf5e812f06d16e207b0828ac2cc3ab1852a51e0829ca60b4e57cec6a6cc27",
+      "independent_originals": 10,
+      "views": 20,
+      "losses": [
+        {
+          "step": 1,
+          "loss": 0.34620216488838196,
+          "gradient_norm": 0.05045264586806297,
+          "unweighted_loss": 0.34738460183143616,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 25.43
+        },
+        {
+          "step": 2,
+          "loss": 0.29479870200157166,
+          "gradient_norm": 0.05232773348689079,
+          "unweighted_loss": 0.2940119206905365,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 53.4
+        },
+        {
+          "step": 3,
+          "loss": 0.013953017070889473,
+          "gradient_norm": 0.003290247404947877,
+          "unweighted_loss": 0.013964397832751274,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 80.21
+        },
+        {
+          "step": 4,
+          "loss": 0.1445103883743286,
+          "gradient_norm": 0.03501638025045395,
+          "unweighted_loss": 0.14457473158836365,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 108.1
+        },
+        {
+          "step": 5,
+          "loss": 0.34691092371940613,
+          "gradient_norm": 0.07436302304267883,
+          "unweighted_loss": 0.3490562438964844,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 139.68
+        },
+        {
+          "step": 6,
+          "loss": 0.22087886929512024,
+          "gradient_norm": 0.03900551423430443,
+          "unweighted_loss": 0.21944813430309296,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 166.2
+        },
+        {
+          "step": 7,
+          "loss": 0.04575849696993828,
+          "gradient_norm": 0.00956831406801939,
+          "unweighted_loss": 0.045786190778017044,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 193.33
+        },
+        {
+          "step": 8,
+          "loss": 0.1591922491788864,
+          "gradient_norm": 0.05773249641060829,
+          "unweighted_loss": 0.16019167006015778,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 216.87
+        },
+        {
+          "step": 9,
+          "loss": 0.031197266653180122,
+          "gradient_norm": 0.008156804367899895,
+          "unweighted_loss": 0.03126000240445137,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 240.48
+        },
+        {
+          "step": 10,
+          "loss": 0.36964845657348633,
+          "gradient_norm": 0.0836557075381279,
+          "unweighted_loss": 0.37387192249298096,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 266.31
+        },
+        {
+          "step": 11,
+          "loss": 0.17981858551502228,
+          "gradient_norm": 0.03671245649456978,
+          "unweighted_loss": 0.18069934844970703,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 288.07
+        },
+        {
+          "step": 12,
+          "loss": 0.12980753183364868,
+          "gradient_norm": 0.03480280935764313,
+          "unweighted_loss": 0.13057687878608704,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 307.95
+        },
+        {
+          "step": 13,
+          "loss": 0.049428388476371765,
+          "gradient_norm": 0.007701080292463303,
+          "unweighted_loss": 0.04895661026239395,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 337.34
+        },
+        {
+          "step": 14,
+          "loss": 0.1588081419467926,
+          "gradient_norm": 0.035355277359485626,
+          "unweighted_loss": 0.15892289578914642,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 368.13
+        },
+        {
+          "step": 15,
+          "loss": 0.15770094096660614,
+          "gradient_norm": 0.026864608749747276,
+          "unweighted_loss": 0.15346622467041016,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 396.74
+        },
+        {
+          "step": 16,
+          "loss": 0.05771246179938316,
+          "gradient_norm": 0.009551489725708961,
+          "unweighted_loss": 0.057176753878593445,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 425.68
+        },
+        {
+          "step": 17,
+          "loss": 0.011425252072513103,
+          "gradient_norm": 0.003687686286866665,
+          "unweighted_loss": 0.011474587954580784,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 454.85
+        },
+        {
+          "step": 18,
+          "loss": 0.007517911493778229,
+          "gradient_norm": 0.003575681708753109,
+          "unweighted_loss": 0.007489184383302927,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 482.75
+        },
+        {
+          "step": 19,
+          "loss": 0.35707974433898926,
+          "gradient_norm": 0.06299351900815964,
+          "unweighted_loss": 0.35597795248031616,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 511.4
+        },
+        {
+          "step": 20,
+          "loss": 0.31642693281173706,
+          "gradient_norm": 0.04533153399825096,
+          "unweighted_loss": 0.3119554817676544,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 539.61
+        },
+        {
+          "step": 21,
+          "loss": 0.0323573462665081,
+          "gradient_norm": 0.00893320981413126,
+          "unweighted_loss": 0.03192057088017464,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 568.01
+        },
+        {
+          "step": 22,
+          "loss": 0.05909968912601471,
+          "gradient_norm": 0.0133362403139472,
+          "unweighted_loss": 0.059385377913713455,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 593.42
+        },
+        {
+          "step": 23,
+          "loss": 0.15191331505775452,
+          "gradient_norm": 0.032029904425144196,
+          "unweighted_loss": 0.15187859535217285,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 619.34
+        },
+        {
+          "step": 24,
+          "loss": 0.02223290130496025,
+          "gradient_norm": 0.009622042067348957,
+          "unweighted_loss": 0.022296400740742683,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 644.69
+        },
+        {
+          "step": 25,
+          "loss": 0.059665098786354065,
+          "gradient_norm": 0.011245961301028728,
+          "unweighted_loss": 0.05964187905192375,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 670.21
+        },
+        {
+          "step": 26,
+          "loss": 0.02448698692023754,
+          "gradient_norm": 0.006126591470092535,
+          "unweighted_loss": 0.024516651406884193,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 695.88
+        },
+        {
+          "step": 27,
+          "loss": 0.28476524353027344,
+          "gradient_norm": 0.035067882388830185,
+          "unweighted_loss": 0.28712815046310425,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 721.46
+        },
+        {
+          "step": 28,
+          "loss": 0.2806932330131531,
+          "gradient_norm": 0.056630220264196396,
+          "unweighted_loss": 0.27685949206352234,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 746.9
+        },
+        {
+          "step": 29,
+          "loss": 0.06104140356183052,
+          "gradient_norm": 0.008714643307030201,
+          "unweighted_loss": 0.059987254440784454,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 772.0
+        },
+        {
+          "step": 30,
+          "loss": 0.3276897668838501,
+          "gradient_norm": 0.04755169898271561,
+          "unweighted_loss": 0.32742154598236084,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 797.58
+        },
+        {
+          "step": 31,
+          "loss": 0.3711700439453125,
+          "gradient_norm": 0.05163447558879852,
+          "unweighted_loss": 0.3731880784034729,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 824.28
+        },
+        {
+          "step": 32,
+          "loss": 0.3272775709629059,
+          "gradient_norm": 0.058915723115205765,
+          "unweighted_loss": 0.32520103454589844,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 850.26
+        },
+        {
+          "step": 33,
+          "loss": 0.26403531432151794,
+          "gradient_norm": 0.03351825103163719,
+          "unweighted_loss": 0.2640647292137146,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 875.55
+        },
+        {
+          "step": 34,
+          "loss": 0.035345952957868576,
+          "gradient_norm": 0.009851694107055664,
+          "unweighted_loss": 0.03582380339503288,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 903.57
+        },
+        {
+          "step": 35,
+          "loss": 0.0045328023843467236,
+          "gradient_norm": 0.0015899455174803734,
+          "unweighted_loss": 0.0045346450060606,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 931.13
+        },
+        {
+          "step": 36,
+          "loss": 0.32375508546829224,
+          "gradient_norm": 0.03167291730642319,
+          "unweighted_loss": 0.3246249556541443,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 959.6
+        },
+        {
+          "step": 37,
+          "loss": 0.3043422996997833,
+          "gradient_norm": 0.034157052636146545,
+          "unweighted_loss": 0.3063669800758362,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 986.9
+        },
+        {
+          "step": 38,
+          "loss": 0.005401648115366697,
+          "gradient_norm": 0.002285153605043888,
+          "unweighted_loss": 0.0053305006586015224,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 1015.2
+        },
+        {
+          "step": 39,
+          "loss": 0.33118146657943726,
+          "gradient_norm": 0.05293843150138855,
+          "unweighted_loss": 0.33213019371032715,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 1044.99
+        },
+        {
+          "step": 40,
+          "loss": 0.4652251899242401,
+          "gradient_norm": 0.08511333167552948,
+          "unweighted_loss": 0.46570056676864624,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 1074.1
+        },
+        {
+          "step": 41,
+          "loss": 0.34173882007598877,
+          "gradient_norm": 0.053021207451820374,
+          "unweighted_loss": 0.3425765633583069,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 1102.53
+        },
+        {
+          "step": 42,
+          "loss": 0.30214256048202515,
+          "gradient_norm": 0.03530400991439819,
+          "unweighted_loss": 0.3024756908416748,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 1131.09
+        },
+        {
+          "step": 43,
+          "loss": 0.30109527707099915,
+          "gradient_norm": 0.05907081812620163,
+          "unweighted_loss": 0.3001399040222168,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 1159.56
+        },
+        {
+          "step": 44,
+          "loss": 0.19938938319683075,
+          "gradient_norm": 0.029383908957242966,
+          "unweighted_loss": 0.1999216228723526,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 1188.07
+        },
+        {
+          "step": 45,
+          "loss": 0.029170576483011246,
+          "gradient_norm": 0.003413850674405694,
+          "unweighted_loss": 0.029220011085271835,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 1215.86
+        },
+        {
+          "step": 46,
+          "loss": 0.2665543854236603,
+          "gradient_norm": 0.03222942352294922,
+          "unweighted_loss": 0.26649802923202515,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 1243.59
+        },
+        {
+          "step": 47,
+          "loss": 0.028910577297210693,
+          "gradient_norm": 0.00702415918931365,
+          "unweighted_loss": 0.029388533905148506,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 1271.35
+        },
+        {
+          "step": 48,
+          "loss": 0.2261306792497635,
+          "gradient_norm": 0.03514409065246582,
+          "unweighted_loss": 0.219102680683136,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 1297.48
+        },
+        {
+          "step": 49,
+          "loss": 0.005395406857132912,
+          "gradient_norm": 0.0066396151669323444,
+          "unweighted_loss": 0.0055692242458462715,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 1323.99
+        },
+        {
+          "step": 50,
+          "loss": 0.6162202954292297,
+          "gradient_norm": 0.08229980617761612,
+          "unweighted_loss": 0.6155532002449036,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 1349.81
+        },
+        {
+          "step": 51,
+          "loss": 0.05922715738415718,
+          "gradient_norm": 0.010183863341808319,
+          "unweighted_loss": 0.05931964889168739,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 1375.39
+        },
+        {
+          "step": 52,
+          "loss": 0.2417667806148529,
+          "gradient_norm": 0.028605446219444275,
+          "unweighted_loss": 0.2417343407869339,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 1397.39
+        },
+        {
+          "step": 53,
+          "loss": 0.015158851630985737,
+          "gradient_norm": 0.0038448465056717396,
+          "unweighted_loss": 0.015040174126625061,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 1416.85
+        },
+        {
+          "step": 54,
+          "loss": 0.02394467033445835,
+          "gradient_norm": 0.005637443624436855,
+          "unweighted_loss": 0.023550579324364662,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 1438.19
+        },
+        {
+          "step": 55,
+          "loss": 0.0042954119853675365,
+          "gradient_norm": 0.002182351192459464,
+          "unweighted_loss": 0.004356528166681528,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 1456.92
+        },
+        {
+          "step": 56,
+          "loss": 0.31026655435562134,
+          "gradient_norm": 0.045228563249111176,
+          "unweighted_loss": 0.3128286600112915,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 1476.51
+        },
+        {
+          "step": 57,
+          "loss": 0.023202182725071907,
+          "gradient_norm": 0.004946764558553696,
+          "unweighted_loss": 0.023161835968494415,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 1494.91
+        },
+        {
+          "step": 58,
+          "loss": 0.2631130814552307,
+          "gradient_norm": 0.027619093656539917,
+          "unweighted_loss": 0.26236143708229065,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 1514.46
+        },
+        {
+          "step": 59,
+          "loss": 0.03800392523407936,
+          "gradient_norm": 0.008615638129413128,
+          "unweighted_loss": 0.03802267834544182,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 1533.1
+        },
+        {
+          "step": 60,
+          "loss": 0.020681172609329224,
+          "gradient_norm": 0.004196371417492628,
+          "unweighted_loss": 0.020661307498812675,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 1552.09
+        },
+        {
+          "step": 61,
+          "loss": 0.30781057476997375,
+          "gradient_norm": 0.051238998770713806,
+          "unweighted_loss": 0.3063466548919678,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 1570.93
+        },
+        {
+          "step": 62,
+          "loss": 0.061271291226148605,
+          "gradient_norm": 0.009511747397482395,
+          "unweighted_loss": 0.06137736141681671,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 1587.79
+        },
+        {
+          "step": 63,
+          "loss": 0.024297617375850677,
+          "gradient_norm": 0.004194294102489948,
+          "unweighted_loss": 0.024326620623469353,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 1610.7
+        },
+        {
+          "step": 64,
+          "loss": 0.01869024522602558,
+          "gradient_norm": 0.0058099147863686085,
+          "unweighted_loss": 0.018393730744719505,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 1636.76
+        },
+        {
+          "step": 65,
+          "loss": 0.3142721354961395,
+          "gradient_norm": 0.06060842052102089,
+          "unweighted_loss": 0.3149927854537964,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 1662.27
+        },
+        {
+          "step": 66,
+          "loss": 0.02734016254544258,
+          "gradient_norm": 0.005344933830201626,
+          "unweighted_loss": 0.027469582855701447,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 1688.0
+        },
+        {
+          "step": 67,
+          "loss": 0.003965390380471945,
+          "gradient_norm": 0.0015626945532858372,
+          "unweighted_loss": 0.004034559708088636,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 1711.62
+        },
+        {
+          "step": 68,
+          "loss": 0.0193565022200346,
+          "gradient_norm": 0.0033627813681960106,
+          "unweighted_loss": 0.0194022785872221,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 1731.64
+        },
+        {
+          "step": 69,
+          "loss": 0.07186851650476456,
+          "gradient_norm": 0.01672312617301941,
+          "unweighted_loss": 0.07244769483804703,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 1752.95
+        },
+        {
+          "step": 70,
+          "loss": 0.18576669692993164,
+          "gradient_norm": 0.03140215203166008,
+          "unweighted_loss": 0.18532198667526245,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 1772.49
+        },
+        {
+          "step": 71,
+          "loss": 0.31815433502197266,
+          "gradient_norm": 0.05229358375072479,
+          "unweighted_loss": 0.3189302682876587,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 1791.36
+        },
+        {
+          "step": 72,
+          "loss": 0.21033990383148193,
+          "gradient_norm": 0.021656373515725136,
+          "unweighted_loss": 0.21039406955242157,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 1809.88
+        },
+        {
+          "step": 73,
+          "loss": 0.20778442919254303,
+          "gradient_norm": 0.025639615952968597,
+          "unweighted_loss": 0.20716270804405212,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 1830.3
+        },
+        {
+          "step": 74,
+          "loss": 0.2121203988790512,
+          "gradient_norm": 0.02245265617966652,
+          "unweighted_loss": 0.21223892271518707,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 1856.39
+        },
+        {
+          "step": 75,
+          "loss": 0.0065169138833880424,
+          "gradient_norm": 0.002222675597295165,
+          "unweighted_loss": 0.006436430849134922,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 1885.06
+        },
+        {
+          "step": 76,
+          "loss": 0.15521441400051117,
+          "gradient_norm": 0.022411813959479332,
+          "unweighted_loss": 0.15801051259040833,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 1913.5
+        },
+        {
+          "step": 77,
+          "loss": 0.10821915417909622,
+          "gradient_norm": 0.012910817749798298,
+          "unweighted_loss": 0.10795041173696518,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 1943.08
+        },
+        {
+          "step": 78,
+          "loss": 0.008279412053525448,
+          "gradient_norm": 0.0031068159732967615,
+          "unweighted_loss": 0.008282352238893509,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 1972.75
+        },
+        {
+          "step": 79,
+          "loss": 0.023997627198696136,
+          "gradient_norm": 0.005139519926160574,
+          "unweighted_loss": 0.02416977286338806,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 2002.48
+        },
+        {
+          "step": 80,
+          "loss": 0.09848358482122421,
+          "gradient_norm": 0.021586472168564796,
+          "unweighted_loss": 0.0986127257347107,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 2030.76
+        },
+        {
+          "step": 81,
+          "loss": 0.015951424837112427,
+          "gradient_norm": 0.04392600804567337,
+          "unweighted_loss": 0.01613244041800499,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 2058.07
+        },
+        {
+          "step": 82,
+          "loss": 0.020659424364566803,
+          "gradient_norm": 0.0029426240362226963,
+          "unweighted_loss": 0.020521223545074463,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 2083.97
+        },
+        {
+          "step": 83,
+          "loss": 0.01128333155065775,
+          "gradient_norm": 0.002706673461943865,
+          "unweighted_loss": 0.011315077543258667,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 2111.47
+        },
+        {
+          "step": 84,
+          "loss": 0.3353661894798279,
+          "gradient_norm": 0.04604830965399742,
+          "unweighted_loss": 0.3353884518146515,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 2138.9
+        },
+        {
+          "step": 85,
+          "loss": 0.015727804973721504,
+          "gradient_norm": 0.00357507704757154,
+          "unweighted_loss": 0.015372746624052525,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 2166.87
+        },
+        {
+          "step": 86,
+          "loss": 0.007312255911529064,
+          "gradient_norm": 0.00239087687805295,
+          "unweighted_loss": 0.007288469932973385,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 2194.47
+        },
+        {
+          "step": 87,
+          "loss": 0.009833288379013538,
+          "gradient_norm": 0.0018637332832440734,
+          "unweighted_loss": 0.009961635805666447,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 2220.66
+        },
+        {
+          "step": 88,
+          "loss": 0.316244900226593,
+          "gradient_norm": 0.03971176594495773,
+          "unweighted_loss": 0.3161870539188385,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 2247.1
+        },
+        {
+          "step": 89,
+          "loss": 0.007781242020428181,
+          "gradient_norm": 0.0019334916723892093,
+          "unweighted_loss": 0.007627781946212053,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 2266.39
+        },
+        {
+          "step": 90,
+          "loss": 0.19738230109214783,
+          "gradient_norm": 0.023005863651633263,
+          "unweighted_loss": 0.19838494062423706,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 2285.71
+        },
+        {
+          "step": 91,
+          "loss": 0.15116938948631287,
+          "gradient_norm": 0.02154645137488842,
+          "unweighted_loss": 0.15162232518196106,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 2307.32
+        },
+        {
+          "step": 92,
+          "loss": 0.041394997388124466,
+          "gradient_norm": 0.00565564539283514,
+          "unweighted_loss": 0.04112093150615692,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 2335.06
+        },
+        {
+          "step": 93,
+          "loss": 0.17951084673404694,
+          "gradient_norm": 0.021417682990431786,
+          "unweighted_loss": 0.17848674952983856,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 2361.29
+        },
+        {
+          "step": 94,
+          "loss": 0.009850981645286083,
+          "gradient_norm": 0.002367035485804081,
+          "unweighted_loss": 0.010010357946157455,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 2388.08
+        },
+        {
+          "step": 95,
+          "loss": 0.04558877646923065,
+          "gradient_norm": 0.0076203858479857445,
+          "unweighted_loss": 0.04495938867330551,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 2414.91
+        },
+        {
+          "step": 96,
+          "loss": 0.14768192172050476,
+          "gradient_norm": 0.01846233941614628,
+          "unweighted_loss": 0.14798158407211304,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 2441.62
+        },
+        {
+          "step": 97,
+          "loss": 0.006064084358513355,
+          "gradient_norm": 0.0020850806031376123,
+          "unweighted_loss": 0.006057010963559151,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 2466.24
+        },
+        {
+          "step": 98,
+          "loss": 0.3295064866542816,
+          "gradient_norm": 0.04337126016616821,
+          "unweighted_loss": 0.3297136723995209,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 2491.21
+        },
+        {
+          "step": 99,
+          "loss": 0.09556262195110321,
+          "gradient_norm": 0.014980836771428585,
+          "unweighted_loss": 0.09502077102661133,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 2515.75
+        },
+        {
+          "step": 100,
+          "loss": 0.31889012455940247,
+          "gradient_norm": 0.038571324199438095,
+          "unweighted_loss": 0.31926029920578003,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 2539.95
+        },
+        {
+          "step": 101,
+          "loss": 0.34119725227355957,
+          "gradient_norm": 0.03973175957798958,
+          "unweighted_loss": 0.3428734540939331,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 2564.12
+        },
+        {
+          "step": 102,
+          "loss": 0.038202133029699326,
+          "gradient_norm": 0.0073347012512385845,
+          "unweighted_loss": 0.038364239037036896,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 2588.71
+        },
+        {
+          "step": 103,
+          "loss": 0.3315051794052124,
+          "gradient_norm": 0.03982146829366684,
+          "unweighted_loss": 0.33014723658561707,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 2615.26
+        },
+        {
+          "step": 104,
+          "loss": 0.30779898166656494,
+          "gradient_norm": 0.03457440435886383,
+          "unweighted_loss": 0.3065359592437744,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 2640.84
+        },
+        {
+          "step": 105,
+          "loss": 0.13413475453853607,
+          "gradient_norm": 0.02131909690797329,
+          "unweighted_loss": 0.13460057973861694,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 2665.3
+        },
+        {
+          "step": 106,
+          "loss": 0.07957149296998978,
+          "gradient_norm": 0.015832195058465004,
+          "unweighted_loss": 0.07971910387277603,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 2689.33
+        },
+        {
+          "step": 107,
+          "loss": 0.025512060150504112,
+          "gradient_norm": 0.0036371001042425632,
+          "unweighted_loss": 0.025413135066628456,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 2715.73
+        },
+        {
+          "step": 108,
+          "loss": 0.2980000972747803,
+          "gradient_norm": 0.030331939458847046,
+          "unweighted_loss": 0.29814693331718445,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 2741.68
+        },
+        {
+          "step": 109,
+          "loss": 0.006672507151961327,
+          "gradient_norm": 0.00153175403829664,
+          "unweighted_loss": 0.006698882207274437,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 2768.59
+        },
+        {
+          "step": 110,
+          "loss": 0.2851628065109253,
+          "gradient_norm": 0.03546510636806488,
+          "unweighted_loss": 0.28952059149742126,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 2794.83
+        },
+        {
+          "step": 111,
+          "loss": 0.05721482262015343,
+          "gradient_norm": 0.009670497849583626,
+          "unweighted_loss": 0.05709304288029671,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 2821.46
+        },
+        {
+          "step": 112,
+          "loss": 0.3300451934337616,
+          "gradient_norm": 0.060242313891649246,
+          "unweighted_loss": 0.32955673336982727,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 2846.98
+        },
+        {
+          "step": 113,
+          "loss": 0.06737318634986877,
+          "gradient_norm": 0.006918560713529587,
+          "unweighted_loss": 0.06660483032464981,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 2874.97
+        },
+        {
+          "step": 114,
+          "loss": 0.2833123207092285,
+          "gradient_norm": 0.030497372150421143,
+          "unweighted_loss": 0.2851058840751648,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 2896.85
+        },
+        {
+          "step": 115,
+          "loss": 0.019536510109901428,
+          "gradient_norm": 0.0032137292437255383,
+          "unweighted_loss": 0.019319597631692886,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 2916.2
+        },
+        {
+          "step": 116,
+          "loss": 0.2257029414176941,
+          "gradient_norm": 0.02811879850924015,
+          "unweighted_loss": 0.22652694582939148,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 2935.01
+        },
+        {
+          "step": 117,
+          "loss": 0.07235575467348099,
+          "gradient_norm": 0.009629275649785995,
+          "unweighted_loss": 0.07244618982076645,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 2954.51
+        },
+        {
+          "step": 118,
+          "loss": 0.38388174772262573,
+          "gradient_norm": 0.04076312482357025,
+          "unweighted_loss": 0.38424646854400635,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 2973.06
+        },
+        {
+          "step": 119,
+          "loss": 0.2811095714569092,
+          "gradient_norm": 0.05491461232304573,
+          "unweighted_loss": 0.2758561372756958,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 2992.2
+        },
+        {
+          "step": 120,
+          "loss": 0.08795002102851868,
+          "gradient_norm": 0.015303353779017925,
+          "unweighted_loss": 0.08924617618322372,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 3010.21
+        },
+        {
+          "step": 121,
+          "loss": 0.08764319121837616,
+          "gradient_norm": 0.01729140244424343,
+          "unweighted_loss": 0.0882813036441803,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 3026.42
+        },
+        {
+          "step": 122,
+          "loss": 0.009093114174902439,
+          "gradient_norm": 0.0029450408183038235,
+          "unweighted_loss": 0.009096970781683922,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 3042.81
+        },
+        {
+          "step": 123,
+          "loss": 0.18737785518169403,
+          "gradient_norm": 0.025838159024715424,
+          "unweighted_loss": 0.1872657984495163,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 3059.15
+        },
+        {
+          "step": 124,
+          "loss": 0.29664891958236694,
+          "gradient_norm": 0.030244264751672745,
+          "unweighted_loss": 0.2979912757873535,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 3075.84
+        },
+        {
+          "step": 125,
+          "loss": 0.28199467062950134,
+          "gradient_norm": 0.029572119936347008,
+          "unweighted_loss": 0.28244033455848694,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 3092.81
+        },
+        {
+          "step": 126,
+          "loss": 0.10039027780294418,
+          "gradient_norm": 0.023348111659288406,
+          "unweighted_loss": 0.10002932697534561,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 3110.72
+        },
+        {
+          "step": 127,
+          "loss": 0.25754550099372864,
+          "gradient_norm": 0.059859562665224075,
+          "unweighted_loss": 0.2565598487854004,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 3128.95
+        },
+        {
+          "step": 128,
+          "loss": 0.2300374060869217,
+          "gradient_norm": 0.035610467195510864,
+          "unweighted_loss": 0.23218324780464172,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 3147.57
+        },
+        {
+          "step": 129,
+          "loss": 0.30511918663978577,
+          "gradient_norm": 0.0512748584151268,
+          "unweighted_loss": 0.3044140040874481,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 3165.91
+        },
+        {
+          "step": 130,
+          "loss": 0.032769035547971725,
+          "gradient_norm": 0.006641049403697252,
+          "unweighted_loss": 0.03323720023036003,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 3184.03
+        },
+        {
+          "step": 131,
+          "loss": 0.028222408145666122,
+          "gradient_norm": 0.010441803373396397,
+          "unweighted_loss": 0.028024809435009956,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 3202.6
+        },
+        {
+          "step": 132,
+          "loss": 0.3486010432243347,
+          "gradient_norm": 0.03786928206682205,
+          "unweighted_loss": 0.3499947190284729,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 3221.62
+        },
+        {
+          "step": 133,
+          "loss": 0.07410681992769241,
+          "gradient_norm": 0.016027186065912247,
+          "unweighted_loss": 0.07242769002914429,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 3239.84
+        },
+        {
+          "step": 134,
+          "loss": 0.30196502804756165,
+          "gradient_norm": 0.03526921570301056,
+          "unweighted_loss": 0.3025820553302765,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 3262.92
+        },
+        {
+          "step": 135,
+          "loss": 0.2765336036682129,
+          "gradient_norm": 0.0337991937994957,
+          "unweighted_loss": 0.2774071991443634,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 3288.27
+        },
+        {
+          "step": 136,
+          "loss": 0.1254744529724121,
+          "gradient_norm": 0.022779056802392006,
+          "unweighted_loss": 0.1255062371492386,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 3314.91
+        },
+        {
+          "step": 137,
+          "loss": 0.04647661745548248,
+          "gradient_norm": 0.00943758338689804,
+          "unweighted_loss": 0.04563628137111664,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 3340.14
+        },
+        {
+          "step": 138,
+          "loss": 0.26818040013313293,
+          "gradient_norm": 0.029376378282904625,
+          "unweighted_loss": 0.26786550879478455,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 3365.52
+        },
+        {
+          "step": 139,
+          "loss": 0.32900092005729675,
+          "gradient_norm": 0.0601247102022171,
+          "unweighted_loss": 0.3256748914718628,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 3391.02
+        },
+        {
+          "step": 140,
+          "loss": 0.1956540048122406,
+          "gradient_norm": 0.03223634883761406,
+          "unweighted_loss": 0.19665436446666718,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 3414.07
+        },
+        {
+          "step": 141,
+          "loss": 0.032576605677604675,
+          "gradient_norm": 0.005494211334735155,
+          "unweighted_loss": 0.03325016424059868,
+          "training_image_id": "pixiv-86401376-face",
+          "elapsed_seconds": 3437.4
+        },
+        {
+          "step": 142,
+          "loss": 0.023956704884767532,
+          "gradient_norm": 0.007437304127961397,
+          "unweighted_loss": 0.024298259988427162,
+          "training_image_id": "pixiv-85672481-face",
+          "elapsed_seconds": 3460.25
+        },
+        {
+          "step": 143,
+          "loss": 0.0053222025744616985,
+          "gradient_norm": 0.002018782775849104,
+          "unweighted_loss": 0.0053266193717718124,
+          "training_image_id": "pixiv-97608823-face",
+          "elapsed_seconds": 3483.23
+        },
+        {
+          "step": 144,
+          "loss": 0.3475659191608429,
+          "gradient_norm": 0.052279625087976456,
+          "unweighted_loss": 0.34683099389076233,
+          "training_image_id": "pixiv-80315592",
+          "elapsed_seconds": 3506.77
+        },
+        {
+          "step": 145,
+          "loss": 0.03751298040151596,
+          "gradient_norm": 0.007772430311888456,
+          "unweighted_loss": 0.037805862724781036,
+          "training_image_id": "pixiv-94115114-face",
+          "elapsed_seconds": 3531.16
+        },
+        {
+          "step": 146,
+          "loss": 0.008098681457340717,
+          "gradient_norm": 0.0017745837103575468,
+          "unweighted_loss": 0.008144121617078781,
+          "training_image_id": "pixiv-85672481",
+          "elapsed_seconds": 3554.31
+        },
+        {
+          "step": 147,
+          "loss": 0.039089739322662354,
+          "gradient_norm": 0.010326839983463287,
+          "unweighted_loss": 0.03833836317062378,
+          "training_image_id": "pixiv-88865174",
+          "elapsed_seconds": 3577.37
+        },
+        {
+          "step": 148,
+          "loss": 0.011856330558657646,
+          "gradient_norm": 0.0025795074179768562,
+          "unweighted_loss": 0.011780082248151302,
+          "training_image_id": "pixiv-86401376",
+          "elapsed_seconds": 3601.09
+        },
+        {
+          "step": 149,
+          "loss": 0.23277276754379272,
+          "gradient_norm": 0.03275883197784424,
+          "unweighted_loss": 0.23125988245010376,
+          "training_image_id": "pixiv-73092535-face",
+          "elapsed_seconds": 3625.05
+        },
+        {
+          "step": 150,
+          "loss": 0.22194167971611023,
+          "gradient_norm": 0.027100687846541405,
+          "unweighted_loss": 0.22114650905132294,
+          "training_image_id": "pixiv-87013579",
+          "elapsed_seconds": 3648.71
+        },
+        {
+          "step": 151,
+          "loss": 0.029947958886623383,
+          "gradient_norm": 0.0063696992583572865,
+          "unweighted_loss": 0.029916852712631226,
+          "training_image_id": "pixiv-73092535",
+          "elapsed_seconds": 3672.36
+        },
+        {
+          "step": 152,
+          "loss": 0.1597212553024292,
+          "gradient_norm": 0.027452372014522552,
+          "unweighted_loss": 0.15619908273220062,
+          "training_image_id": "pixiv-80315592-face",
+          "elapsed_seconds": 3695.28
+        },
+        {
+          "step": 153,
+          "loss": 0.17391487956047058,
+          "gradient_norm": 0.021887624636292458,
+          "unweighted_loss": 0.1727503389120102,
+          "training_image_id": "pixiv-97608823",
+          "elapsed_seconds": 3717.86
+        },
+        {
+          "step": 154,
+          "loss": 0.2951202690601349,
+          "gradient_norm": 0.036636918783187866,
+          "unweighted_loss": 0.2953720688819885,
+          "training_image_id": "pixiv-88865174-face",
+          "elapsed_seconds": 3740.85
+        },
+        {
+          "step": 155,
+          "loss": 0.30717724561691284,
+          "gradient_norm": 0.03443896025419235,
+          "unweighted_loss": 0.30851030349731445,
+          "training_image_id": "pixiv-83564059",
+          "elapsed_seconds": 3763.62
+        },
+        {
+          "step": 156,
+          "loss": 0.34801822900772095,
+          "gradient_norm": 0.04919813945889473,
+          "unweighted_loss": 0.3490692973136902,
+          "training_image_id": "pixiv-91383176",
+          "elapsed_seconds": 3786.75
+        },
+        {
+          "step": 157,
+          "loss": 0.09155642986297607,
+          "gradient_norm": 0.014853548258543015,
+          "unweighted_loss": 0.09230455011129379,
+          "training_image_id": "pixiv-83564059-face",
+          "elapsed_seconds": 3810.78
+        },
+        {
+          "step": 158,
+          "loss": 0.003708811476826668,
+          "gradient_norm": 0.002676879521459341,
+          "unweighted_loss": 0.003674520878121257,
+          "training_image_id": "pixiv-87013579-face",
+          "elapsed_seconds": 3835.93
+        },
+        {
+          "step": 159,
+          "loss": 0.03760681301355362,
+          "gradient_norm": 0.029526900500059128,
+          "unweighted_loss": 0.03767046704888344,
+          "training_image_id": "pixiv-94115114",
+          "elapsed_seconds": 3860.72
+        },
+        {
+          "step": 160,
+          "loss": 0.006506417877972126,
+          "gradient_norm": 0.0042382716201245785,
+          "unweighted_loss": 0.006602754816412926,
+          "training_image_id": "pixiv-91383176-face",
+          "elapsed_seconds": 3884.29
+        }
+      ]
+    }
+  },
+  "notes": [
+    "原生运行日志、权重、缓存及参考原作未打包。",
+    "原始底模生成未记录运行程序哈希，此哈希在对照准备时补录；不能单独证明过去程序未改变。",
+    "这些单人物单种子开发实验不能证明稳定泛化或给出画风相似度百分比。"
+  ]
+}

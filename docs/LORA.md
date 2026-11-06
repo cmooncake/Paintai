@@ -292,3 +292,49 @@ data/lora-env/Scripts/python.exe tests/test_lora_checkpoint_state.py
 评价记录 `assessment.json`、核验记录 `technical-acceptance.json`、40 步复用证明 `40-reuse-proof.json`。
 三个检查点位于 `data/lora/animagine-continuous-160-r1/checkpoint-0040`、`checkpoint-0080`、`checkpoint-0160`。
 对应对照图在 `data/lora/lillie-continuous-40`、`lillie-continuous-80`、`lillie-continuous-160`。
+
+## 莉莉艾全身照：学习率单变量诊断
+
+全身对照已经确认旧 160 步适配器的 1680/1680 个张量被加载，改动主要是颜色、裙摆与鞋袜细节，
+不能将变化弱解释为 LoRA 完全未生效。旧训练只有 10 张独立原作、20 个裁图视图；部分面部裁图只有
+256–350 像素。去噪验证 MSE 仅下降约 1.48%，探针输出均值变化约 0.01278，都不是画风相似度。
+梯度范数最高约 0.121，低于裁剪阈值 1；训练标注为 18–42 tokens，没有被训练脚本截断。
+
+全身推理提示词用 Hugging Face 两个 tokenizer 原样计数均为 88 tokens，但本地
+stable-diffusion.cpp `3be2378` 的 CLIP 实现支持 overflow 分块，不能仅据此声称 77 tokens 后丢词。
+原始文本计数也不等于去掉权重语法后的原生 tokenizer 计数。源码依据：
+[固定版本 conditioner.hpp](https://github.com/leejet/stable-diffusion.cpp/blob/3be2378/src/conditioning/conditioner.hpp)。
+
+本轮从底模重新训练，保持原数据清单、rank 4、768、seed 42、6 线程及 160 步预算，只将学习率
+从 5e-5 提到 2e-4，以检验更新幅度不足的假设。学习率是 LoRA 的可调训练参数，
+[Diffusers 文档](https://huggingface.co/docs/diffusers/main/training/lora)提供相关说明；此数值是实验选择，
+不是已经验证有效的推荐配置。rank 容量不足、角色标签先验过强和训练内容与风格耦合仍是待检验假设。
+
+```powershell
+data/lora-env/Scripts/python.exe scripts/train-style-lora.py --architecture sdxl --manifest data/lora/animagine-detail/manifest.json --output data/lora/animagine-lr2e4-160 --steps 160 --resolution 768 --threads 6 --learning-rate 0.0002 --checkpoints 160
+.venv/Scripts/python.exe scripts/compare-sdxl-lora.py --training data/lora/animagine-lr2e4-160/checkpoint-0160 --baseline data/lillie-fullbody-20261106 --output data/lillie-fullbody-lr2e4-20261106
+```
+
+复用原全身照和旧 160 步图，保持原题、正负提示词、768×1152、seed 42、28 步、CFG 5、Euler a、
+CLIP skip 2 和 LoRA 强度 1。新生成图需核对实际运行参数及权重应用日志，再在网页归档三组对照。
+不以变化变大、背景变亮或去噪误差下降替代画风验收；不自动升级默认模型。
+冻结计划与诊断证据保存在 `data/lora/animagine-lr2e4-review/plan.json`。尚未记录结果时不代表试验成功。
+
+### 学习率诊断结果（2026-11-06）
+
+160 步真实训练完成，更新阶段耗时 3884.29 秒；缓存哈希、初始验证值、训练脚本哈希及全部样本顺序
+均与旧方案一致。最大参数变化 0.0190830，重载误差 0；探针变化从旧方案 0.0127811 增至 0.0241975。
+验证 MSE 为 0.18128797，旧方案为 0.18211796，底模为 0.18484868。
+更新影响增加、去噪指标略降，都没有转化为本组可见的画风改善。
+
+同题同种子全身图实际生成约 965 秒，原生程序确认 1680/1680 个 LoRA 张量应用。
+新图帽檐、脸、头发和裙摆的黑色粗轮廓更加突出，腿部黄色硬边色块更明显；
+虹膜仍为简单分区，没有出现目标参考的细密彩线、柔和肤色过渡和通透多层反光。
+金发、绿眼、白帽白裙白鞋及完整入镜保住，但袜子颜色、裙摆图案、鞋面细节改变。
+这是本次助手看图的定性分析，不是本地视觉模型评分，未给出相似度百分比。
+
+**本轮画风验收失败，新方案不设为默认。** 单纯提高学习率未解决当前数据和训练方案的问题；
+数据细节质量、风格与内容耦合、角色先验及 rank 容量需分别验证，不能据此指定唯一根因。
+网页「小笑 → LoRA 实验」新增底模、旧 160 步、新 160 步三组对照及诊断，35 项技术核验通过。
+归档原图和评价仍保存在忽略提交的 `data/` 下，细节见 `data/lora/animagine-lr2e4-review/assessment.json`、
+`technical-acceptance.json`；新图为 `data/lillie-fullbody-lr2e4-20261106/lora.png`。

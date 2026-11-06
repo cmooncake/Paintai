@@ -105,7 +105,7 @@ export default function LoraPanel({
           />
           <p className="lora-conclusion">{report.conclusion}</p>
           <p>{report.protocol}</p>
-          <div className="lora-grid">
+          <div className={`lora-grid${report.arms.length === 3 ? " lora-grid-three" : ""}`}>
             {report.arms.map((arm) => (
               <figure key={arm.id}>
                 <figcaption>
