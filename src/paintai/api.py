@@ -12,8 +12,9 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import Field
+from starlette.concurrency import run_in_threadpool
 
 from .config import Settings, load_settings
 from .curriculum.spec import CurriculumSpec, direction_curriculum, load_spec
@@ -27,6 +28,7 @@ from .model_presets import ark_all, bailian_seedream
 from .model_settings import ModelEdit, ModelRevision, ModelSettings, RoleEdit
 from .models import DirectionText, Model, Painter, PainterId, PracticeOptions, StyleTraits, Text
 from .storage import Store
+from .transfer import MAX_ARCHIVE, Transfer, TransferConflict, TransferError
 
 
 class NewPainter(Model):
@@ -102,6 +104,7 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
     jobs = Jobs(store, settings, model_settings=model_settings)
     worker = Worker(jobs)
     learning, memory = jobs.learning, Memory(store)
+    transfer = Transfer(store)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -279,6 +282,33 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
     @app.get("/api/v1/painters")
     def list_painters():
         return store.painters()
+
+    @app.exception_handler(TransferError)
+    async def transfer_error(request, exc):
+        return JSONResponse(
+            {"detail": str(exc)}, status_code=409 if isinstance(exc, TransferConflict) else 400
+        )
+
+    @app.get("/api/v1/painters/{painter_id}/export")
+    def export_painter(painter_id: str):
+        raw = transfer.export(painter_id)
+        return Response(
+            raw,
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f'attachment; filename="paintai-{painter_id}.zip"',
+                "Cache-Control": "no-store",
+            },
+        )
+
+    @app.post("/api/v1/painters/import", status_code=201)
+    async def import_painter(request: Request):
+        raw = bytearray()
+        async for chunk in request.stream():
+            if len(raw) + len(chunk) > MAX_ARCHIVE:
+                raise HTTPException(413, "迁移包不能超过 256 MB。")
+            raw.extend(chunk)
+        return await run_in_threadpool(transfer.restore, bytes(raw))
 
     @app.get("/api/v1/curricula/default")
     def default_curriculum():
