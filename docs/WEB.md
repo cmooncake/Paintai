@@ -1,5 +1,7 @@
 # M0 网页画室
 
+另一台 Windows 电脑从零安装并恢复小笑，见 [新电脑部署与导入指南](NEW_COMPUTER.md)。
+
 跨电脑恢复画师请使用「数据迁移」；导出／导入步骤和范围见 [TRANSFER.md](TRANSFER.md)。
 
 课程与记忆扩展已加入「学习」入口，使用方式、API 和数据兼容说明见 [LEARNING.md](LEARNING.md)。原有画室与作品接口继续可用。
