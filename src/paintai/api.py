@@ -20,6 +20,7 @@ from .config import Settings, load_settings
 from .curriculum.spec import CurriculumSpec, direction_curriculum, load_spec
 from .evolution import Evolution
 from .experiments import ExperimentRequest
+from .inpainting import InpaintError, InpaintRequest
 from .jobs import Jobs, QueueConflict, Worker
 from .learning import LearningError
 from .lora_reports import LoraReports
@@ -80,6 +81,10 @@ def public_creation(entry):
         "generation_constraints",
         "reference_conditioning",
         "lora_conditioning",
+        "reference_reviews",
+        "revision_comparison",
+        "revision_comparisons",
+        "visual_review",
     )
     result = {key: entry.get(key) for key in fields}
     result["image_url"] = (
@@ -176,6 +181,10 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
     async def invalid_learning(request, exc):
         return JSONResponse({"detail": str(exc)}, status_code=409)
 
+    @app.exception_handler(InpaintError)
+    async def invalid_inpaint(request, exc):
+        return JSONResponse({"detail": str(exc)}, status_code=422)
+
     @app.exception_handler(ValueError)
     async def missing(request, exc):
         return JSONResponse(
@@ -199,6 +208,10 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
         }
         result["stage"] = job["status"]
         result["training"] = None
+        if job["kind"] == "inpaint":
+            result["topic"] = "局部重绘：" + json.loads(job["payload"]).get("_request", {}).get(
+                "instructions", ""
+            )
         if job["kind"] == "reference_review":
             payload = json.loads(job["payload"])
             record = next(
@@ -513,6 +526,19 @@ def create_app(settings: Settings | None = None, *, start_worker=True):
         painter_id: str, entry_id: str, idempotency_key: str = Header(min_length=8, max_length=100)
     ):
         return job_response(jobs.submit(painter_id, "evaluate", "", idempotency_key, entry_id))
+
+    @app.post("/api/v1/painters/{painter_id}/creations/{entry_id}/inpaint", status_code=202)
+    def inpaint(
+        painter_id: str,
+        entry_id: str,
+        body: InpaintRequest,
+        idempotency_key: str = Header(min_length=8, max_length=100),
+    ):
+        return job_response(
+            jobs.submit(
+                painter_id, "inpaint", entry_id, idempotency_key, entry_id, edit_request=body
+            )
+        )
 
     @app.get("/api/v1/jobs")
     def list_jobs(painter_id: str | None = None):

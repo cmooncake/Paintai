@@ -93,9 +93,58 @@ class RequirementCheck(Model):
     verdict: str = Field(pattern="^(met|missed|uncertain)$")
 
 
+class PortraitFacts(Model):
+    hair: Literal["white", "silver", "black", "blue", "blonde", "brown", "other", "uncertain"]
+    framing: Literal["face_closeup", "head_shoulders", "waist_up", "full_body", "uncertain"]
+    head_complete: bool
+    clothing: str = Field(min_length=1, max_length=300)
+    eyes: str = Field(min_length=1, max_length=200)
+
+
+def verify_portrait_check(label, check, facts):
+    """Blind pixel observations override subsequent request-conditioned guesses."""
+    lower = label.lower()
+    if "white hair" in lower:
+        check.verdict = (
+            "met"
+            if facts.hair in {"white", "silver"}
+            else "uncertain"
+            if facts.hair == "uncertain"
+            else "missed"
+        )
+        check.evidence = "盲看发色：" + facts.hair
+    if any(word in lower for word in ("waist-up", "half-body", "upper body")):
+        check.verdict = (
+            "met"
+            if facts.framing == "waist_up" and facts.head_complete
+            else "uncertain"
+            if facts.framing == "uncertain"
+            else "missed"
+        )
+        check.evidence = f"盲看取景：{facts.framing}；头顶完整：{facts.head_complete}"
+    if "dress" in lower:
+        needed = [r"裙|dress|gown"]
+        for word, pattern in (
+            ("white", r"白|white"),
+            ("purple", r"紫|purple|violet"),
+            ("black", r"黑|black"),
+            ("floral", r"花|floral|flower"),
+        ):
+            if word in lower:
+                needed.append(pattern)
+        if not all(re.search(pattern, facts.clothing, re.I) for pattern in needed):
+            check.verdict = "uncertain"
+        check.evidence = "盲看服装：" + facts.clothing[:225]
+    if "violet eyes" in lower:
+        if not re.search(r"紫|violet|purple", facts.eyes, re.I):
+            check.verdict = "uncertain"
+        check.evidence = "盲看眼睛：" + facts.eyes
+    return check
+
+
 def locked_requirements(topic: str, requirements: dict | None):
     # Never let the evaluator substitute what it sees for what was requested.
-    clauses = [s.strip() for s in re.split(r"[,.;。；，]|\s+and\s+", topic) if s.strip()]
+    clauses = [s.strip() for s in re.split(r"[,.;。；，]|(?<=hair)\s+and\s+", topic) if s.strip()]
     if len(clauses) > 12:
         clauses = clauses[:11] + ["; ".join(clauses[11:])]
     practice = (requirements or {}).get("practice") or {}
@@ -447,6 +496,17 @@ class CompatibleProvider:
             [{"type": "text", "text": "Describe the visible image."}, image_content],
         )
         constraints = locked_requirements(topic, requirements)
+        portrait_facts = None
+        if re.search(r"portrait|half-body|waist-up|upper body|半身|头像", topic, re.I):
+            portrait_facts = self._json(
+                PortraitFacts,
+                "Inspect visible pixels without guessing a character. Return hair BASE color, not highlights. "
+                "framing: face_closeup=face dominates/cropped head; head_shoulders=no waist; "
+                "waist_up=head and torso to waist visible; full_body=legs visible. "
+                "head_complete=false if top is cropped. Describe visible garment colors, shape and ornaments "
+                "and eyes in Chinese; explicitly say when clothing is not visible. Never infer unseen details.",
+                [{"type": "text", "text": "Observe the image, including its crop."}, image_content],
+            )
         result = self._json(
             Critique,
             "You are an evidence auditor. The independent_observation is the only evidence of what was drawn. "
@@ -494,17 +554,28 @@ class CompatibleProvider:
                 RequirementCheck,
                 "Compare ONE requested attribute with the observed facts. met only if clearly supported; "
                 "missed for a contradiction; uncertain if absent. Give short evidence in Chinese. "
-                "Do not grade beauty. Never change the required attribute.",
+                "Do not grade beauty. Never change the required attribute. "
+                "The image and blind_facts override the request. Missing garment details, unseen hands "
+                "or an unrecognisable character are uncertain, never met. Cite a short specific visible feature.",
                 [
                     {
                         "type": "text",
                         "text": json.dumps(
-                            {"required": label, "observed": observation.description},
+                            {
+                                "required": label,
+                                "observed": observation.description,
+                                "blind_facts": portrait_facts.model_dump()
+                                if portrait_facts
+                                else None,
+                            },
                             ensure_ascii=False,
                         ),
-                    }
+                    },
+                    image_content,
                 ],
             )
+            if portrait_facts:
+                check = verify_portrait_check(label, check, portrait_facts)
             checks.append((label, check))
         failures = [(label, c) for label, c in checks if c.verdict != "met"]
         if failures:
@@ -517,6 +588,13 @@ class CompatibleProvider:
             result.improvements = [
                 f"优先核对并修正：{label}；观察证据：{c.evidence}" for label, c in failures[:3]
             ] + result.improvements[:2]
+            # Do not retain a request-conditioned success story contradicting the audit.
+            result.feedback = "原题要求存在未满足或无法确认的项目，不能认定角色还原成功。请以独立观察和逐项核对为准。"
+            if any(
+                any(w in label.lower() for w in ("waist-up", "half-body", "upper body"))
+                for label, _ in failures
+            ):
+                result.scores.composition = min(result.scores.composition, 4)
         result.feedback = (
             "独立看图："
             + observation.description

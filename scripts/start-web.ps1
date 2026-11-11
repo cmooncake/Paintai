@@ -10,6 +10,8 @@ $vite = Join-Path $root 'web\node_modules\vite\bin\vite.js'
 if (!(Test-Path -LiteralPath $python) -or !(Test-Path -LiteralPath $vite)) {
     throw 'Install Python web dependencies and run npm ci in web first. See docs/WEB.md.'
 }
+& $python (Join-Path $PSScriptRoot 'repository-data.py')
+if ($LASTEXITCODE -ne 0) { throw 'Repository data restore failed. See output above.' }
 if ($StartModels -and !$Offline) {
     & (Join-Path $PSScriptRoot 'start-local-model.ps1')
     & (Join-Path $PSScriptRoot 'start-local-vision.ps1')

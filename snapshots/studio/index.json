@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "exported_at": "2026-11-11T13:03:16.596909+00:00",
+  "painters": [
+    {
+      "painter_id": "demo",
+      "name": "小画师",
+      "file": "demo.zip",
+      "sha256": "0ff98a37a449ac48c1e5b5420721d1aa6e220041ff82e97572f0cf7ef099529e",
+      "bytes": 514039,
+      "creations": 2,
+      "images": 2
+    },
+    {
+      "painter_id": "local_demo",
+      "name": "本地小画师",
+      "file": "local_demo.zip",
+      "sha256": "83f90333213496975408c811d1bbaaaf4685166feda2aeced5952ed725920a0f",
+      "bytes": 5844,
+      "creations": 2,
+      "images": 2
+    },
+    {
+      "painter_id": "local_art",
+      "name": "本地画师",
+      "file": "local_art.zip",
+      "sha256": "ca0f4c881025479e76d0d4ec22316c57d313e0170114392c0d9ec59793914e76",
+      "bytes": 1098440,
+      "creations": 3,
+      "images": 2
+    },
+    {
+      "painter_id": "painter_e83d19185385",
+      "name": "拾光",
+      "file": "painter_e83d19185385.zip",
+      "sha256": "3d04f0bce827766576326f819fc1a56b346664c0ed8eb583f8f7d43055dc3a81",
+      "bytes": 4426443,
+      "creations": 20,
+      "images": 12
+    },
+    {
+      "painter_id": "painter_97a292e01ab8",
+      "name": "山水习作",
+      "file": "painter_97a292e01ab8.zip",
+      "sha256": "5569f0fd37e086b31999d7fab0e0d1adf1caf6efee3df37b23e7165223777fa4",
+      "bytes": 509926,
+      "creations": 1,
+      "images": 1
+    },
+    {
+      "painter_id": "painter_cce9e4b89d1e",
+      "name": "小笑",
+      "file": "painter_cce9e4b89d1e.zip",
+      "sha256": "7f4365625103b3e716ce2d10eaa0fb10d6c5d47c9d61cb46f487b961bdbe3b0d",
+      "bytes": 15565443,
+      "creations": 25,
+      "images": 32
+    },
+    {
+      "painter_id": "painter_cc8a0c065e6f",
+      "name": "琪光",
+      "file": "painter_cc8a0c065e6f.zip",
+      "sha256": "006e9bf4375409ea917b524010740d95610ed55a4f0c412dc5cbdee5007ae065",
+      "bytes": 48397922,
+      "creations": 32,
+      "images": 31
+    }
+  ]
+}

@@ -17,6 +17,8 @@ COLORS = (
     "teal",
     "blue",
     "purple",
+    "violet",
+    "cyan",
     "pink",
     "gray",
     "grey",
@@ -32,13 +34,16 @@ def portrait_locks(text):
     """Conservative extraction: preserve original spans; never invent missing attributes."""
     patterns = {
         "hair": rf"\b(?:chestnut\s+)?{COLOR}(?:\s+(?:short|long|bob|curly|straight)){{0,3}}\s+hair\b",
-        "eyes": rf"\b{COLOR}\s+eyes\b",
-        "clothing": rf"\b(?:(?:simple|plain)\s+)?{COLOR}\s+(?:blouse|shirt|dress|jacket|sweater)\b",
+        "eyes": rf"\b{COLOR}\s+eyes(?:(?:\s+with\s+|,\s*){COLOR}\s+iris highlights)?\b",
+        "clothing": rf"\b(?:(?:simple|plain)\s+)?{COLOR}(?:\s+and\s+{COLOR})?\s+(?:blouse|shirt|dress|jacket|sweater)(?:\s+with\s+{COLOR}\s+floral ornaments)?\b",
+        "framing": r"\b(?:waist-up half-body portrait with entire head visible|waist-up|half-body|upper body)\b",
         "background": rf"\b(?:(?:plain|solid|muted|pale|dark|light)\s+){{0,3}}{COLOR}\s+background\b",
     }
     locks = {}
     for key, pattern in patterns.items():
         matches = list(re.finditer(pattern, text, re.I))
+        if key == "framing" and matches:
+            matches = matches[:1]
         if (
             key == "clothing"
             and matches
@@ -69,6 +74,8 @@ def negative_constraints(locks):
             {"amber", "gold", "yellow"},
             {"ivory", "white", "cream"},
             {"gray", "grey", "silver"},
+            {"purple", "violet"},
+            {"cyan", "blue"},
         )
         for group in equivalents:
             if wanted & group:
@@ -77,7 +84,7 @@ def negative_constraints(locks):
             wanted |= {"green", "blue"}
         # Keep exclusions short and avoid suppressing white garments via white-background tokens.
         candidates = {
-            "hair": ("blue", "green", "pink", "purple"),
+            "hair": ("black", "blue", "green", "pink", "purple"),
             "eyes": ("blue", "green", "pink", "purple"),
             "background": ("yellow", "beige", "pink", "orange"),
         }
@@ -86,6 +93,8 @@ def negative_constraints(locks):
                 negative.append(f"{color} {noun}")
     if "hair" in locks:
         negative += ["multicolored hair", "dyed hair tips"]
+    if "framing" in locks:
+        negative += ["close-up", "face only", "cropped head", "full body"]
     clothing = locks.get("clothing", "").lower()
     if "blouse" in clothing and ("simple" in clothing or "plain" in clothing):
         negative += [
@@ -99,3 +108,24 @@ def negative_constraints(locks):
     if "background" in locks and re.search(r"\b(plain|solid)\b", locks["background"], re.I):
         negative += ["patterned background", "decorative background"]
     return ", ".join(negative)
+
+
+def anime_tags(text):
+    """Conservative lexical compilation; retain unrecognised requirements verbatim."""
+    replacements = {
+        "waist-up half-body portrait with entire head visible": "upper body, waist-up, entire head visible",
+        "Kiana Kaslana (Honkai Impact 3rd)": "1girl, kiana kaslana, honkai impact 3rd",
+        "Herrscher of Finality form": r"herrscher of finality",
+        "long white hair": "white hair, long hair",
+        "violet eyes with cyan iris highlights": "violet eyes, cyan iris highlights",
+        "white and purple dress with black floral ornaments": "white and purple dress, black floral ornaments",
+        "calm confident smile": "gentle smile",
+        "one hand near chest": "hand on own chest",
+        "simple muted blue-gray background": "simple background, muted blue-gray background",
+        "soft side lighting": "soft side lighting",
+        "clean fine lines and crisp cel shading with soft transitions": "fine linework, cel shading, soft shading",
+        "no text, no logo.": "",
+    }
+    for source, target in replacements.items():
+        text = text.replace(source, target)
+    return text.strip().rstrip(", ")

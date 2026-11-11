@@ -18,6 +18,46 @@ TOPIC = (
 )
 
 
+def test_finality_halfbody_locks_and_runtime_agree(tmp_path, monkeypatch):
+    topic = (
+        "Kiana Kaslana (Honkai Impact 3rd), Herrscher of Finality form, solo, "
+        "waist-up half-body portrait with entire head visible, long white hair, "
+        "violet eyes with cyan iris highlights, white and purple dress with black floral ornaments"
+    )
+    locks = portrait_locks(topic)
+    assert set(locks) == {"hair", "eyes", "clothing", "framing"}
+    assert locks["clothing"] == "white and purple dress with black floral ornaments"
+    negatives = negative_constraints(locks)
+    assert "black hair" in negatives and "close-up" in negatives
+    assert "blue eyes" not in negatives and "purple eyes" not in negatives
+    exe, weights = tmp_path / "sd.exe", tmp_path / "weights"
+    exe.touch()
+    weights.touch()
+    cfg = ProviderConfig(
+        provider="sd_cpp",
+        model="animagine-xl-4.0-opt",
+        local_image=LocalImageConfig(
+            executable=exe, model_path=weights, work_dir=tmp_path / "runs"
+        ),
+    )
+    generator = LocalImageGenerator(cfg)
+    plan = MockProvider().plan(topic, Painter(painter_id="test", name="test"))
+    plan.prompt = topic + "\nclean contours"
+    prepared, metadata = generator.prepare(plan)
+    assert prepared.prompt.startswith("1girl, kiana kaslana")
+    assert "(white hair:1.3)" in prepared.prompt
+    assert "(upper body, waist-up, entire head visible:1.3)" in prepared.prompt
+    assert "(white and purple dress, black floral ornaments:1.3)" in prepared.prompt
+
+    def run(command, **kwargs):
+        assert command[command.index("--negative-prompt") + 1] == metadata["negative_prompt"]
+        Path(command[command.index("-o") + 1]).write_bytes(MockProvider().generate(plan))
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    generator.generate(prepared)
+
+
 def test_explicit_attributes_and_negative_constraints():
     locks = portrait_locks(TOPIC)
     assert locks == {

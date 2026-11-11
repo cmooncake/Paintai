@@ -11,6 +11,11 @@ export interface Critique {
   improvements: string[];
 }
 export interface Creation {
+  visual_review?: { summary: string; scope: string; sources?: { title: string; url: string }[]; items: { name: string; verdict: string; evidence: string; improvement: string }[] } | null;
+  revision_comparisons?: import("./CreationComparison").RevisionComparison[];
+  revision_comparison?:
+    import("./CreationComparison").RevisionComparison | null;
+  reference_reviews?: import("./ReferenceReviewPanel").ReferenceReview[];
   generation_constraints?: {
     version: string;
     protected_attributes: Record<string, string>;

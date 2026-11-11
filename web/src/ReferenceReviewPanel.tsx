@@ -14,6 +14,7 @@ export type ReferenceReview = {
   model: string;
   profile_name: string;
   error?: string;
+  verification_note?: string;
   references: { id: string; sha256: string }[];
   results: {
     entry_id: string;

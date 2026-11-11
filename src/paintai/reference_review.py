@@ -25,6 +25,19 @@ DIMENSIONS = {
 
 def evidence_warning(comparison):
     # Conservative flag only: retain raw output and never invent a corrected score.
+    def without_labels(text):
+        text = re.sub(
+            r"参考图\d*|生成图|reference(?: image)?\s*\d*|generated(?: image)?",
+            "",
+            text,
+            flags=re.I,
+        )
+        return re.sub(r"[\s，,：:。.]", "", text).lower()
+
+    if without_labels(comparison.reference_evidence) == without_labels(
+        comparison.generated_evidence
+    ):
+        return "参考图与生成图证据重复，未提供可区分的观察；分数仅保留原始输出，不计入有效均分。"
     if re.search(
         r"发色|眼色|眸色|眼[睛眸].{0,4}颜色|背景|服[装饰]|发饰|发型|角色特征|hair colou?r|eye colou?r|background|accessor|outfit",
         comparison.gap,
@@ -47,6 +60,54 @@ class Comparison(Model):
 class ReferenceReview:
     def __init__(self, store):
         self.store = store
+
+    def creation_snapshot(self, painter_id, entry_id):
+        entry = self.store.get(painter_id, entry_id)
+        if not entry.get("image_path") or entry["status"] not in (
+            "complete",
+            "evaluation_failed",
+            "generated",
+        ):
+            raise LearningError("请选择已有图片且没有正在执行任务的作品。")
+        profile = (entry.get("painter_snapshot") or {}).get("style_profile")
+        if not profile or not profile.get("reference_ids"):
+            raise LearningError("这件作品没有冻结的参考图，请使用创作时已启用的风格档案。")
+        refs = StyleLearning(self.store)
+        references = []
+        for rid, digest in zip(profile["reference_ids"], profile["reference_hashes"], strict=True):
+            if hashlib.sha256(refs.path(painter_id, rid).read_bytes()).hexdigest() != digest:
+                raise LearningError("参考图与作品冻结版本不一致。")
+            references.append({"id": rid, "sha256": digest})
+        if not 1 <= len(references) <= 3:
+            raise LearningError("每次对照需要 1–3 张参考图。")
+        return {
+            "entry_id": entry_id,
+            "profile_name": profile["name"],
+            "references": references,
+            "works": [
+                {
+                    "entry_id": entry_id,
+                    "pair": 0,
+                    "arm": "single",
+                    "seed": (
+                        entry.get("config", {}).get("generator", {}).get("local_image") or {}
+                    ).get("seed"),
+                    "sha256": hashlib.sha256(
+                        self.store.image_path(entry["image_path"]).read_bytes()
+                    ).hexdigest(),
+                }
+            ],
+        }
+
+    def save_creation(self, painter_id, entry_id, review):
+        entry = self.store.get(painter_id, entry_id)
+        history = entry.setdefault("reference_reviews", [])
+        old = next((i for i, r in enumerate(history) if r["id"] == review["id"]), None)
+        if old is None:
+            history.append(review)
+        else:
+            history[old] = review
+        self.store.save(entry)
 
     def snapshot(self, painter_id, experiment_id):
         record = next(
@@ -108,7 +169,10 @@ class ReferenceReview:
         }
 
         def save():
-            self.save(painter_id, snapshot["experiment_id"], review)
+            if snapshot.get("entry_id"):
+                self.save_creation(painter_id, snapshot["entry_id"], review)
+            else:
+                self.save(painter_id, snapshot["experiment_id"], review)
 
         def image(path, digest):
             raw = Path(path).read_bytes()
@@ -142,7 +206,9 @@ class ReferenceReview:
                 review["results"].append(result)
                 for key, label in DIMENSIONS.items():
                     question = (
-                        "只比较这一项画法：" + label + "。前三张为参考，最后一张为待评生成图。"
+                        "只比较这一项画法："
+                        + label
+                        + f"。前{len(snapshot['references'])}张为参考，最后一张为待评生成图。"
                         "请直接指出绘画方法的异同，不要描述人物穿着与颜色。"
                         "reference_evidence写参考图的本项画法，generated_evidence写最后一张的本项画法，gap写具体技法差距。"
                         "禁止以发色、瞳色、发型、服装、饰物、背景或角色不同作为理由。"

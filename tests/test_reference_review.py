@@ -15,6 +15,17 @@ from paintai.storage import Store
 from paintai.style_learning import StyleLearning
 
 
+def test_copied_evidence_cannot_support_perfect_score():
+    comparison = Comparison(
+        reference_evidence="参考图中，皮肤高光细腻。",
+        generated_evidence="生成图中，皮肤高光细腻。",
+        gap="参考更细腻",
+        score=4,
+        confidence="high",
+    )
+    assert "证据重复" in evidence_warning(comparison)
+
+
 def fixture(tmp_path):
     s = Store(tmp_path)
     s.add_painter(Painter(painter_id="p", name="P"))
@@ -167,3 +178,90 @@ def test_confounded_evidence_and_queue_recovery(tmp_path):
     assert (
         saved["status"] == "complete" and saved["reference_reviews"][0]["status"] == "interrupted"
     )
+
+
+def test_single_creation_review_keeps_critique_and_is_public(tmp_path, monkeypatch):
+    from paintai.api import public_creation
+
+    store, entry, experiment = fixture(tmp_path)
+    entry["painter_snapshot"]["style_profile"] = experiment["painter_snapshot"]["style_profile"]
+    store.save(entry)
+    service = ReferenceReview(store)
+    snapshot = service.creation_snapshot("p", entry["id"])
+    original_critique = entry["critique"]
+    original_attempts = entry["evaluation_attempts"]
+    seen = []
+
+    def compare(self, schema, system, content):
+        pictures = [c for c in content if c["type"] == "image_url"]
+        assert len(pictures) == 2
+        assert "前1张为参考" in content[-1]["text"]
+        assert (
+            base64.b64decode(pictures[-1]["image_url"]["url"].split(",")[1])
+            == store.image_path(entry["image_path"]).read_bytes()
+        )
+        seen.append(1)
+        return Comparison(
+            reference_evidence="内线较细",
+            generated_evidence="内线较粗",
+            gap="内线粗细变化不足",
+            score=2,
+            confidence="medium",
+        )
+
+    monkeypatch.setattr(CompatibleProvider, "_json", compare)
+    config = ProviderConfig(
+        provider="openai_compatible",
+        auth="none",
+        model="test-vision",
+        base_url="http://localhost/v1",
+    )
+    with httpx.Client() as client:
+        service.run("p", snapshot, config, client, "single1")
+        service.run("p", snapshot, config, client, "single2")
+    restored = Store(tmp_path).get("p", entry["id"])
+    assert len(seen) == 10
+    assert restored["critique"] == original_critique
+    assert restored["evaluation_attempts"] == original_attempts
+    assert len(public_creation(restored)["reference_reviews"]) == 2
+    assert restored["reference_reviews"][0]["results"][0]["mean"] == 2
+    with pytest.raises(ValueError):
+        service.creation_snapshot("other", entry["id"])
+    StyleLearning(store).path("p", snapshot["references"][0]["id"]).write_bytes(b"modified")
+    with pytest.raises(ValueError, match="不一致"):
+        service.creation_snapshot("p", entry["id"])
+
+
+def test_single_creation_partial_failure_preserves_evidence(tmp_path, monkeypatch):
+    store, entry, experiment = fixture(tmp_path)
+    service = ReferenceReview(store)
+    with pytest.raises(ValueError, match="没有冻结"):
+        service.creation_snapshot("p", entry["id"])
+    entry["painter_snapshot"]["style_profile"] = experiment["painter_snapshot"]["style_profile"]
+    store.save(entry)
+    count = 0
+
+    def compare(*args):
+        nonlocal count
+        count += 1
+        if count > 1:
+            raise RuntimeError("inference failed")
+        return Comparison(
+            reference_evidence="a", generated_evidence="b", gap="c", score=1, confidence="low"
+        )
+
+    monkeypatch.setattr(CompatibleProvider, "_json", compare)
+    config = ProviderConfig(
+        provider="openai_compatible",
+        auth="none",
+        model="test-vision",
+        base_url="http://localhost/v1",
+    )
+    with httpx.Client() as client, pytest.raises(RuntimeError):
+        service.run(
+            "p", service.creation_snapshot("p", entry["id"]), config, client, "failed-single"
+        )
+    review = store.get("p", entry["id"])["reference_reviews"][0]
+    assert review["status"] == "failed"
+    assert len(review["results"][0]["dimensions"]) == 1
+    assert "mean" not in review["results"][0]

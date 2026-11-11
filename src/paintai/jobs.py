@@ -55,6 +55,7 @@ class Jobs:
         options=None,
         experiment=None,
         style_request=None,
+        edit_request=None,
     ):
         if kind == "experiment":
             experiment = experiment or ExperimentRequest(topic=topic)
@@ -68,6 +69,11 @@ class Jobs:
             db.execute("BEGIN IMMEDIATE")
             previous = db.execute("SELECT * FROM jobs WHERE request_key=?", (key,)).fetchone()
             if previous:
+                if (
+                    kind == "inpaint"
+                    and json.loads(previous["payload"]).get("_request") != edit_request.model_dump()
+                ):
+                    raise QueueConflict("请求标识已用于其他重绘要求。")
                 if (
                     kind == "style"
                     and json.loads(previous["payload"]).get("_request") != style_request
@@ -95,7 +101,7 @@ class Jobs:
                     previous["topic"],
                     previous["entry_id"],
                 ) != (painter_id, kind, topic, entry_id) and not (
-                    kind in ("create", "train", "experiment", "reference_review")
+                    kind in ("create", "train", "experiment", "reference_review", "inpaint")
                     and previous["painter_id"] == painter_id
                     and previous["kind"] == kind
                     and previous["topic"] == topic
@@ -125,6 +131,11 @@ class Jobs:
             )
             if kind == "train":
                 payload["_request"] = options.model_dump()
+            if kind == "inpaint":
+                from .inpainting import snapshot
+
+                active_settings = active_settings.model_copy(deep=True)
+                payload = snapshot(self.store, painter_id, entry_id, edit_request, active_settings)
             if kind == "experiment":
                 experiment = experiment or ExperimentRequest(topic=topic)
                 payload = self.experiments.snapshot(painter_id, experiment, active_settings)
@@ -255,7 +266,16 @@ class Worker:
                         for role in ("planner", "generator", "critic")
                     ),
                 )
-                if job["kind"] == "reference_review":
+                if job["kind"] == "inpaint":
+                    from .inpainting import run
+
+                    result = run(
+                        agent,
+                        json.loads(job["payload"]),
+                        job["painter_id"],
+                        lambda entry: self.jobs.update(job["id"], entry_id=entry["id"]),
+                    )
+                elif job["kind"] == "reference_review":
                     result = ReferenceReview(self.jobs.store).run(
                         job["painter_id"],
                         json.loads(job["payload"]),

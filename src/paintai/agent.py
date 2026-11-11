@@ -167,7 +167,7 @@ class PainterAgent:
                 requirements = entry.get("art_brief")
             kwargs = {"requirements": requirements} if requirements else {}
             if self.settings.critic.provider == "openai_compatible":
-                entry["rubric_version"] = attempt["rubric_version"] = "locked-requirements-v3"
+                entry["rubric_version"] = attempt["rubric_version"] = "blind-portrait-audit-v4"
             critique = self.critic.evaluate(
                 image,
                 entry["topic"],

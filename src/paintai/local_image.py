@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from .config import ProviderConfig
 from .models import Plan
-from .prompt_guard import negative_constraints, portrait_locks
+from .prompt_guard import anime_tags, negative_constraints, portrait_locks
 from .providers import MAX_IMAGE_BYTES, ProviderError
 
 
@@ -21,6 +21,7 @@ class LocalImageGenerator:
         self.reference_metadata = None
         self.lora = None
         self.lora_metadata = None
+        self.inpaint = None
 
     def set_lora(self, path, digest, strength=1.0):
         """Explicit opt-in for a verified local adapter; never changes the base model."""
@@ -58,13 +59,27 @@ class LocalImageGenerator:
         locks = portrait_locks(plan.prompt.splitlines()[0])
         result = plan.model_copy(deep=True)
         if locks:
-            weights = {"hair": 1.25, "eyes": 1.5, "clothing": 1.4, "background": 1.25}
+            weights = {
+                "hair": 1.25,
+                "eyes": 1.5,
+                "clothing": 1.4,
+                "background": 1.25,
+                "framing": 1.3,
+            }
             anchors = [f"({text}:{weights[key]})" for key, text in locks.items()]
             if locks.get("eyes", "").lower() == "amber eyes":
                 anchors.append("(golden orange irises:1.3)")
             if "ivory blouse" in locks.get("clothing", "").lower():
                 anchors.append("(white blouse:1.3)")
             result.prompt = ", ".join(anchors) + "\n" + plan.prompt
+        if "animagine" in self.config.model.lower():
+            subject, *techniques = plan.prompt.splitlines()
+            subject = anime_tags(subject)
+            for key in ("framing", "hair", "clothing"):
+                if key in locks:
+                    original = anime_tags(locks[key])
+                    subject = subject.replace(original, f"({original}:1.3)")
+            result.prompt = subject + (", " + ", ".join(techniques) if techniques else "")
         suffix = self.config.local_image.prompt_suffix.strip()
         if suffix and not result.prompt.rstrip().endswith(suffix):
             result.prompt = result.prompt.rstrip() + ", " + suffix
@@ -72,7 +87,7 @@ class LocalImageGenerator:
             filter(None, [self.config.local_image.negative_prompt, negative_constraints(locks)])
         )
         return result, {
-            "version": "portrait-attributes-v2",
+            "version": "portrait-attributes-v3",
             "protected_attributes": locks,
             "negative_prompt": negative,
             "model_prompt_suffix": suffix,
@@ -138,6 +153,9 @@ class LocalImageGenerator:
                 )
             ),
         ]
+        if self.inpaint is not None:
+            init, mask, strength = self.inpaint
+            command += ["--init-img", str(init), "--mask", str(mask), "--strength", str(strength)]
         if self.lora is not None:
             command += ["--lora-model-dir", str(self.lora.parent)]
         if self.reference is not None:

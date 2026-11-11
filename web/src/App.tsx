@@ -4,6 +4,9 @@ import type { FormEvent, ReactNode } from "react";
 import { active, asset, post, request } from "./api";
 import LearningPanel from "./LearningPanel";
 import LoraPanel from "./LoraPanel";
+import CreationReferenceReview from "./CreationReferenceReview";
+import CreationComparison from "./CreationComparison";
+import InpaintEditor from "./InpaintEditor";
 import TransferPanel from "./TransferPanel";
 import ModelSettingsPanel from "./ModelSettingsPanel";
 import type { Creation, Job, Painter, System } from "./api";
@@ -1012,6 +1015,25 @@ export default function App() {
               </div>
             </div>
             <div className="detail-copy">
+              <CreationComparison creation={detail} />
+              {detail.visual_review && (
+                <section className="creation-reference-review">
+                  <h3>助手看图专项复核</h3>
+                  <p>{detail.visual_review.scope}</p>
+                  {detail.visual_review.sources?.map((source) => (
+                    <p key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></p>
+                  ))}
+                  <p className="rating-note">{detail.visual_review.summary}</p>
+                  {detail.visual_review.items.map((item) => (
+                    <div key={item.name}>
+                      <h4>{item.name} · {item.verdict}</h4>
+                      <p>{item.evidence}</p>
+                      <p>改进建议：{item.improvement}</p>
+                    </div>
+                  ))}
+                </section>
+              )}
+              {detail.image_url && <InpaintEditor key={detail.id} creation={detail} disabled={!!running || submitting} onSubmitted={job=>{setJobs(old=>[job,...old]);setNotice('局部重绘已排队，原图保留；完成后在作品库查看新作品和对照。');}} />}
               <DirectionBrief brief={detail.art_brief} />
               {detail.experiment && (
                 <p className="learning-help">
@@ -1121,6 +1143,10 @@ export default function App() {
                   </p>
                 </div>
               )}
+              <CreationReferenceReview
+                painterId={detail.painter_id}
+                reviews={detail.reference_reviews || []}
+              />
               {detail.can_evaluate && (
                 <button
                   className="secondary"

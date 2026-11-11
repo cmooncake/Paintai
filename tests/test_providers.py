@@ -107,6 +107,55 @@ def test_critic_sends_actual_image_and_validates_scores(monkeypatch, painter, pl
         assert result.overall == 5
 
 
+def test_blind_facts_override_sycophantic_portrait_checks(monkeypatch, painter, plan, tmp_path):
+    from paintai.providers import locked_requirements
+
+    topic = "waist-up half-body portrait with entire head visible, long white hair, white and purple dress"
+    assert "white and purple dress" in locked_requirements(topic, None).values()
+    path = tmp_path / "portrait.png"
+    path.write_bytes(MockProvider().generate(plan))
+
+    def handler(request):
+        body = json.loads(request.content)
+        system = body["messages"][0]["content"]
+        content = body["messages"][1]["content"]
+        if system.startswith("Describe only"):
+            reply = {"description": "深色头发的脸部特写，衣服看不见。"}
+        elif system.startswith("Inspect visible"):
+            assert topic not in str(content)
+            reply = {
+                "hair": "black",
+                "framing": "face_closeup",
+                "head_complete": False,
+                "clothing": "看不见",
+                "eyes": "蓝色",
+            }
+        elif system.startswith("Compare ONE"):
+            assert (
+                base64.b64decode(content[1]["image_url"]["url"].split(",")[1]) == path.read_bytes()
+            )
+            reply = {"evidence": "完全符合", "verdict": "met"}
+        else:
+            reply = {
+                "scores": dict.fromkeys(
+                    ["topic", "technique", "composition", "color", "style", "creativity"], 10
+                ),
+                "feedback": "白发和半身构图完美还原",
+                "improvements": ["继续保持"],
+            }
+        return httpx.Response(200, json={"choices": [{"message": {"content": json.dumps(reply)}}]})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        critique = CompatibleProvider(config(monkeypatch), client).evaluate(
+            path, topic, painter, plan
+        )
+    assert critique.scores.topic <= 4 and critique.scores.composition <= 4
+    assert "完美还原" not in critique.feedback
+    assert "long white hair [missed]" in critique.feedback
+    assert "white and purple dress [uncertain]" in critique.feedback
+    assert "头顶完整：False" in critique.feedback
+
+
 @pytest.mark.parametrize(
     "payload",
     [
